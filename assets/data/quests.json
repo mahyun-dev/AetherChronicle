@@ -1,0 +1,171 @@
+{
+  "quest_001": {
+    "id": "quest_001",
+    "name": "슬라임 소탕 작전",
+    "description": "마을 근처에 슬라임들이 너무 많아졌습니다.\n10마리를 처치해주세요.",
+    "type": "hunt",
+    "level": 1,
+    "giver": "village_chief",
+    "objectives": [
+      {
+        "type": "kill",
+        "target": "slime",
+        "required": 10,
+        "current": 0,
+        "description": "슬라임 처치"
+      }
+    ],
+    "rewards": {
+      "exp": 100,
+      "gold": 50,
+      "items": [
+        {
+          "id": "potion_hp_small",
+          "name": "초급 체력 물약",
+          "quantity": 3
+        }
+      ]
+    },
+    "prerequisites": []
+  },
+  "quest_002": {
+    "id": "quest_002",
+    "name": "늑대 사냥",
+    "description": "필드에 출몰하는 늑대 5마리를 처치하고 늑대 가죽을 수집하세요.",
+    "type": "hunt",
+    "level": 5,
+    "giver": "hunter_npc",
+    "objectives": [
+      {
+        "type": "kill",
+        "target": "wolf",
+        "required": 5,
+        "current": 0,
+        "description": "늑대 처치"
+      },
+      {
+        "type": "collect",
+        "target": "wolf_leather",
+        "required": 3,
+        "current": 0,
+        "description": "늑대 가죽 수집"
+      }
+    ],
+    "rewards": {
+      "exp": 250,
+      "gold": 150,
+      "items": [
+        {
+          "id": "potion_hp_medium",
+          "name": "중급 체력 물약",
+          "quantity": 2
+        }
+      ]
+    },
+    "prerequisites": ["quest_001"]
+  },
+  "quest_003": {
+    "id": "quest_003",
+    "name": "고블린 토벌",
+    "description": "필드에 나타난 고블린들을 처치하세요.",
+    "type": "hunt",
+    "level": 10,
+    "giver": "guard_captain",
+    "objectives": [
+      {
+        "type": "kill",
+        "target": "goblin",
+        "required": 8,
+        "current": 0,
+        "description": "고블린 처치"
+      },
+      {
+        "type": "kill",
+        "target": "goblin_warrior",
+        "required": 3,
+        "current": 0,
+        "description": "고블린 전사 처치"
+      }
+    ],
+    "rewards": {
+      "exp": 500,
+      "gold": 300,
+      "items": [
+        {
+          "id": "enhancement_stone_basic",
+          "name": "기본 강화석",
+          "quantity": 5
+        }
+      ]
+    },
+    "prerequisites": ["quest_002"]
+  },
+  "quest_004": {
+    "id": "quest_004",
+    "name": "재료 수집",
+    "description": "연금술사를 위해 슬라임 젤리를 수집하세요.",
+    "type": "collect",
+    "level": 1,
+    "giver": "alchemist_npc",
+    "objectives": [
+      {
+        "type": "collect",
+        "target": "slime_jelly",
+        "required": 20,
+        "current": 0,
+        "description": "슬라임 젤리 수집"
+      }
+    ],
+    "rewards": {
+      "exp": 80,
+      "gold": 100,
+      "items": [
+        {
+          "id": "potion_hp_small",
+          "name": "초급 체력 물약",
+          "quantity": 5
+        },
+        {
+          "id": "potion_mp_small",
+          "name": "초급 마나 물약",
+          "quantity": 5
+        }
+      ]
+    },
+    "prerequisites": []
+  },
+  "quest_005": {
+    "id": "quest_005",
+    "name": "필드 보스 토벌",
+    "description": "전설의 황금 그리폰이 필드에 나타났습니다. 이를 처치하세요!",
+    "type": "hunt",
+    "level": 30,
+    "giver": "village_chief",
+    "objectives": [
+      {
+        "type": "kill",
+        "target": "golden_griffon",
+        "required": 1,
+        "current": 0,
+        "description": "황금 그리폰 처치"
+      }
+    ],
+    "rewards": {
+      "exp": 2000,
+      "gold": 1000,
+      "items": [
+        {
+          "id": "enhancement_stone_rare",
+          "name": "희귀 강화석",
+          "quantity": 3
+        },
+        {
+          "id": "enhancement_stone_legendary",
+          "name": "전설 강화석",
+          "quantity": 1
+        }
+      ]
+    },
+    "prerequisites": ["quest_003"]
+  }
+}

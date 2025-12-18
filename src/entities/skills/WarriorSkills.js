@@ -1,0 +1,695 @@
+import { Skill } from '../Skill.js';
+
+/**
+ * WarriorSkills - 전사 스킬들
+ * 돌진 베기, 방어 자세, 회전 베기, 파멸의 일격
+ */
+
+/**
+ * DashSkill - 돌진 스킬 (돌진 베기)
+ */
+export class DashSkill extends Skill {
+  execute(caster, target) {
+    const scene = caster.scene;
+
+    // 마우스 방향으로 돌진
+    const pointer = scene.input.activePointer;
+    const worldPoint = scene.cameras.main.getWorldPoint(pointer.x, pointer.y);
+    const angle = Phaser.Math.Angle.Between(caster.x, caster.y, worldPoint.x, worldPoint.y);
+
+    const dashDistance = this.range;
+    const targetX = caster.x + Math.cos(angle) * dashDistance;
+    const targetY = caster.y + Math.sin(angle) * dashDistance;
+
+    // 무적 상태
+    caster.isInvincible = true;
+
+    // 다중 잔상 효과 - 더 강력하게
+    const trailCount = 8;
+    for (let i = 0; i < trailCount; i++) {
+      scene.time.delayedCall(i * 25, () => {
+        const trail = scene.add.rectangle(caster.x, caster.y, 32, 32, 0xFFD700, 0.7 - (i * 0.08));
+        trail.setDepth(99);
+        scene.tweens.add({
+          targets: trail,
+          alpha: 0,
+          scale: 1.2,
+          duration: 150,
+          onComplete: () => trail.destroy()
+        });
+      });
+    }
+
+    // 돌진 시작 충격파
+    const startShockwave = scene.add.circle(caster.x, caster.y, 20, 0xFFFFFF, 0.8);
+    startShockwave.setDepth(100);
+    scene.tweens.add({
+      targets: startShockwave,
+      scale: 3,
+      alpha: 0,
+      duration: 200,
+      onComplete: () => startShockwave.destroy()
+    });
+
+    // 돌진 중 경로상 피해를 위한 변수들
+    const baseDamage = Math.floor(caster.stats.attack * this.damageMultiplier + this.damage);
+    const comboMultiplier = caster.getComboMultiplier ? caster.getComboMultiplier() : 1.0;
+    const totalDamage = Math.floor(baseDamage * comboMultiplier);
+    const hitMonsters = new Set(); // 중복 피해 방지
+
+    // 돌진 트윈
+    scene.tweens.add({
+      targets: caster,
+      x: targetX,
+      y: targetY,
+      duration: 200,
+      onUpdate: (tween, target) => {
+        // 돌진 중 경로상 적 체크 (매 프레임)
+        const monsters = scene.monsters.getChildren();
+        monsters.forEach(monster => {
+          if (hitMonsters.has(monster) || monster.isDead) return;
+
+          const distance = Phaser.Math.Distance.Between(caster.x, caster.y, monster.x, monster.y);
+          if (distance <= 60) { // 경로상 범위
+            hitMonsters.add(monster);
+
+            const result = monster.takeDamage(totalDamage, caster);
+            scene.showDamageText(monster.x, monster.y - 30, result.damage, result.isCrit, result.isEvaded);
+
+            // 콤보 증가
+            if (!result.isEvaded && caster.increaseCombo) {
+              caster.increaseCombo();
+            }
+
+            // 넉백 적용
+            if (!result.isEvaded && this.knockbackPower > 0) {
+              monster.applyKnockback(this.knockbackPower, 300, caster);
+            }
+          }
+        });
+      },
+      onComplete: () => {
+        caster.isInvincible = false;
+
+        // 도착 충격파 효과
+        const endShockwave = scene.add.circle(targetX, targetY, 30, 0xFFD700, 0.8);
+        endShockwave.setDepth(100);
+        scene.tweens.add({
+          targets: endShockwave,
+          scale: 4,
+          alpha: 0,
+          duration: 300,
+          onComplete: () => endShockwave.destroy()
+        });
+
+        // 도착 지점 먼지 효과
+        for (let i = 0; i < 12; i++) {
+          const dustAngle = (i / 12) * Math.PI * 2;
+          const dustDistance = 40;
+          const dust = scene.add.circle(
+            targetX + Math.cos(dustAngle) * dustDistance,
+            targetY + Math.sin(dustAngle) * dustDistance,
+            4, 0x8B4513, 0.6
+          );
+          dust.setDepth(98);
+
+          scene.tweens.add({
+            targets: dust,
+            x: targetX + Math.cos(dustAngle) * (dustDistance + 30),
+            y: targetY + Math.sin(dustAngle) * (dustDistance + 30),
+            alpha: 0,
+            duration: 400,
+            onComplete: () => dust.destroy()
+          });
+        }
+      }
+    });
+  }
+}
+
+/**
+ * BuffSkill - 버프 스킬 (방어 자세)
+ */
+export class BuffSkill extends Skill {
+  execute(caster, target) {
+    const scene = caster.scene;
+
+    // 방어 자세 스킬인 경우 (warrior_skill_2)
+    if (this.id === 'warrior_skill_2') {
+      this.executeDefensiveStance(scene, caster);
+    } else {
+      // 일반 버프 스킬
+      this.executeGenericBuff(scene, caster);
+    }
+  }
+
+  executeDefensiveStance(scene, caster) {
+    // 방어 자세: 방어막 생성 + 강화 효과
+    const shieldColor = 0x4444FF;
+
+    // 중앙 방어막
+    const shield = scene.add.circle(caster.x, caster.y, 50, shieldColor, 0.4);
+    shield.setDepth(150);
+
+    // 방어막 테두리 효과
+    const shieldBorder = scene.add.circle(caster.x, caster.y, 55, shieldColor, 0.2);
+    shieldBorder.setDepth(149);
+
+    // 방어막 파티클
+    const particles = [];
+    for (let i = 0; i < 16; i++) {
+      const angle = (i / 16) * Math.PI * 2;
+      const distance = 45;
+      const particle = scene.add.circle(
+        caster.x + Math.cos(angle) * distance,
+        caster.y + Math.sin(angle) * distance,
+        3, shieldColor, 0.8
+      );
+      particle.setDepth(151);
+      particles.push(particle);
+
+      // 파티클 회전 애니메이션
+      scene.tweens.add({
+        targets: particle,
+        angle: 360,
+        duration: 3000,
+        repeat: -1
+      });
+    }
+
+    // 방어막이 플레이어를 따라다니게
+    const shieldFollow = scene.time.addEvent({
+      delay: 16,
+      callback: () => {
+        if (shield.active && caster.active) {
+          shield.setPosition(caster.x, caster.y);
+          shieldBorder.setPosition(caster.x, caster.y);
+
+          // 파티클들도 함께 이동
+          particles.forEach((particle, index) => {
+            if (particle.active) {
+              const angle = (index / 16) * Math.PI * 2;
+              const distance = 45;
+              particle.setPosition(
+                caster.x + Math.cos(angle) * distance,
+                caster.y + Math.sin(angle) * distance
+              );
+            }
+          });
+        }
+      },
+      loop: true
+    });
+
+    // 버프 적용
+    this.applyBuffEffects(caster);
+
+    // 지속 시간 후 제거
+    scene.time.delayedCall(this.duration, () => {
+      if (shield.active) {
+        scene.tweens.add({
+          targets: shield,
+          alpha: 0,
+          duration: 300,
+          onComplete: () => shield.destroy()
+        });
+      }
+      if (shieldBorder.active) {
+        scene.tweens.add({
+          targets: shieldBorder,
+          alpha: 0,
+          duration: 300,
+          onComplete: () => shieldBorder.destroy()
+        });
+      }
+      particles.forEach(particle => {
+        if (particle.active) {
+          scene.tweens.add({
+            targets: particle,
+            alpha: 0,
+            duration: 300,
+            onComplete: () => particle.destroy()
+          });
+        }
+      });
+      shieldFollow.destroy();
+    });
+  }
+
+  executeGenericBuff(scene, caster) {
+    // 일반 버프 스킬 (기존 로직)
+    const effectColor = 0xFF0000;
+    const effect = scene.add.circle(caster.x, caster.y, 40, effectColor, 0.6);
+    effect.setDepth(150);
+    scene.tweens.add({
+      targets: effect,
+      alpha: 0,
+      scale: 2,
+      duration: 500,
+      onComplete: () => effect.destroy()
+    });
+
+    // 버프 적용
+    this.applyBuffEffects(caster);
+  }
+
+  applyBuffEffects(caster) {
+    const scene = caster.scene;
+    const effectColor = 0xFF0000;
+
+    // 원본 스탯 저장
+    const originalStats = {};
+
+    // 버프/디버프 적용
+    this.effects.forEach(effectData => {
+      if (effectData.type === 'buff' || effectData.type === 'debuff') {
+        const stat = effectData.stat;
+
+        // 특수 처리: damageReduction
+        if (stat === 'damageReduction') {
+          if (!caster.damageReduction) caster.damageReduction = 0;
+          originalStats[stat] = caster.damageReduction;
+          caster.damageReduction = effectData.value;
+          console.log(`🛡️ 받는 피해 ${Math.floor(effectData.value * 100)}% 감소`);
+        } else if (caster.stats[stat] !== undefined) {
+          originalStats[stat] = caster.stats[stat];
+          if (effectData.type === 'buff') {
+            caster.stats[stat] = Math.floor(originalStats[stat] * effectData.value);
+            console.log(`💪 ${stat} 증가: ${originalStats[stat]} → ${caster.stats[stat]}`);
+          } else {
+            caster.stats[stat] = Math.floor(originalStats[stat] * effectData.value);
+            console.log(`⬇️ ${stat} 감소: ${originalStats[stat]} → ${caster.stats[stat]}`);
+          }
+        }
+      }
+    });
+
+    // 버프 아우라 (지속 시간 동안)
+    const aura = scene.add.circle(caster.x, caster.y, 50, effectColor, 0.2);
+    aura.setDepth(1);
+
+    // 플레이어를 따라다니는 aura
+    const auraFollow = scene.time.addEvent({
+      delay: 16,
+      callback: () => {
+        if (aura.active && caster.active) {
+          aura.setPosition(caster.x, caster.y);
+        }
+      },
+      loop: true
+    });
+
+    // 버프 종료
+    scene.time.delayedCall(this.duration, () => {
+      // 스탯 복구
+      Object.keys(originalStats).forEach(stat => {
+        if (stat === 'damageReduction') {
+          caster.damageReduction = originalStats[stat];
+        } else if (caster.stats[stat] !== undefined) {
+          caster.stats[stat] = originalStats[stat];
+          console.log(`⏰ ${stat} 원래대로: ${originalStats[stat]}`);
+        }
+      });
+
+      // 아우라 제거
+      if (aura.active) {
+        scene.tweens.add({
+          targets: aura,
+          alpha: 0,
+          duration: 300,
+          onComplete: () => aura.destroy()
+        });
+      }
+      auraFollow.destroy();
+    });
+  }
+}
+
+/**
+ * AOESkill - 광역 스킬 (회전 베기)
+ */
+export class AOESkill extends Skill {
+  execute(caster, target) {
+    const scene = caster.scene;
+    const centerX = caster.x;
+    const centerY = caster.y;
+
+    // 회전 베기 스킬인 경우 (warrior_skill_3)
+    if (this.id === 'warrior_skill_3') {
+      this.executeWhirlingSlash(scene, caster, centerX, centerY);
+    } else {
+      // 일반 AOE 스킬
+      this.executeGenericAOE(scene, caster, centerX, centerY);
+    }
+  }
+
+  executeWhirlingSlash(scene, caster, centerX, centerY) {
+    // 회전 베기: 회전하는 검기 효과
+    const slashCount = 6;
+    const slashColor = 0xFFD700;
+
+    // 회전하는 검기들 생성
+    for (let i = 0; i < slashCount; i++) {
+      scene.time.delayedCall(i * 80, () => {
+        const angle = (i / slashCount) * Math.PI * 2;
+
+        // 검기 선
+        const slash = scene.add.rectangle(
+          centerX + Math.cos(angle) * (this.radius * 0.7),
+          centerY + Math.sin(angle) * (this.radius * 0.7),
+          this.radius * 0.8, 8, slashColor, 0.8
+        );
+        slash.setRotation(angle);
+        slash.setDepth(100);
+
+        // 검기 파티클
+        for (let j = 0; j < 6; j++) {
+          const particleAngle = angle + (j - 3) * 0.3;
+          const particleDistance = this.radius * (0.5 + j * 0.1);
+          const particle = scene.add.circle(
+            centerX + Math.cos(particleAngle) * particleDistance,
+            centerY + Math.sin(particleAngle) * particleDistance,
+            3, slashColor, 0.9
+          );
+          particle.setDepth(101);
+
+          scene.tweens.add({
+            targets: particle,
+            x: centerX + Math.cos(particleAngle) * (particleDistance + 40),
+            y: centerY + Math.sin(particleAngle) * (particleDistance + 40),
+            alpha: 0,
+            duration: 400,
+            onComplete: () => particle.destroy()
+          });
+        }
+
+        scene.tweens.add({
+          targets: slash,
+          alpha: 0,
+          scaleX: 1.5,
+          duration: 400,
+          onComplete: () => slash.destroy()
+        });
+      });
+    }
+
+    // 중앙 회전 효과
+    const spinEffect = scene.add.circle(centerX, centerY, 30, slashColor, 0.5);
+    spinEffect.setDepth(99);
+    scene.tweens.add({
+      targets: spinEffect,
+      angle: 360,
+      scale: 2,
+      alpha: 0,
+      duration: 600,
+      onComplete: () => spinEffect.destroy()
+    });
+
+    // 피해 적용 (약간의 지연 후)
+    scene.time.delayedCall(200, () => {
+      const monsters = scene.monsters.getChildren();
+      const baseDamage = Math.floor(caster.stats.attack * this.damageMultiplier + this.damage);
+      const comboMultiplier = caster.getComboMultiplier ? caster.getComboMultiplier() : 1.0;
+      const totalDamage = Math.floor(baseDamage * comboMultiplier);
+
+      monsters.forEach(monster => {
+        const distance = Phaser.Math.Distance.Between(centerX, centerY, monster.x, monster.y);
+        if (distance <= this.radius && !monster.isDead) {
+          const result = monster.takeDamage(totalDamage, caster);
+          scene.showDamageText(monster.x, monster.y - 30, result.damage, result.isCrit, result.isEvaded);
+
+          // 콤보 증가
+          if (!result.isEvaded && caster.increaseCombo) {
+            caster.increaseCombo();
+          }
+
+          // 넉백 적용
+          if (!result.isEvaded && this.knockbackPower > 0) {
+            const knockbackSource = { x: centerX, y: centerY };
+            monster.applyKnockback(this.knockbackPower, 300, knockbackSource);
+          }
+        }
+      });
+    });
+  }
+
+  executeGenericAOE(scene, caster, centerX, centerY) {
+    // 일반 AOE 스킬 (기존 로직)
+    const effect = scene.add.circle(centerX, centerY, this.radius, 0xFFFF00, 0.3);
+    effect.setDepth(50);
+    scene.tweens.add({
+      targets: effect,
+      alpha: 0,
+      scale: 1.2,
+      duration: 500,
+      onComplete: () => effect.destroy()
+    });
+
+    // 범위 내 모든 몬스터 대미지
+    const monsters = scene.monsters.getChildren();
+    const baseDamage = Math.floor(caster.stats.attack * this.damageMultiplier + this.damage);
+    const comboMultiplier = caster.getComboMultiplier ? caster.getComboMultiplier() : 1.0;
+    const totalDamage = Math.floor(baseDamage * comboMultiplier);
+
+    monsters.forEach(monster => {
+      const distance = Phaser.Math.Distance.Between(centerX, centerY, monster.x, monster.y);
+      if (distance <= this.radius && !monster.isDead) {
+        const result = monster.takeDamage(totalDamage, caster);
+        scene.showDamageText(monster.x, monster.y - 30, result.damage, result.isCrit, result.isEvaded);
+
+        // 콤보 증가
+        if (!result.isEvaded && caster.increaseCombo) {
+          caster.increaseCombo();
+        }
+
+        // 넉백 적용
+        if (!result.isEvaded && this.knockbackPower > 0) {
+          const knockbackSource = { x: centerX, y: centerY };
+          monster.applyKnockback(this.knockbackPower, 300, knockbackSource);
+        }
+      }
+    });
+  }
+}
+
+/**
+ * RangedSkill - 원거리 스킬 (돌진 베기, 파멸의 일격)
+ */
+export class RangedSkill extends Skill {
+  execute(caster, target) {
+    const scene = caster.scene;
+
+    // 파멸의 일격 스킬인 경우 (warrior_skill_ultimate)
+    if (this.id === 'warrior_skill_ultimate') {
+      this.executeDoomStrike(scene, caster, target);
+    } else {
+      // 일반 원거리 스킬
+      this.executeGenericRanged(scene, caster, target);
+    }
+  }
+
+  executeDoomStrike(scene, caster, target) {
+    // 파멸의 일격: 강력한 충격파 효과
+    const startX = caster.x;
+    const startY = caster.y;
+
+    let comboIncreased = false; // 콤보 증가 플래그
+
+    // 타겟이 없으면 마우스 포인터 사용
+    let targetX, targetY, targetMonster;
+    if (target && !target.isDead) {
+      targetX = target.x;
+      targetY = target.y;
+      targetMonster = target;
+    } else {
+      // 마우스 방향으로 발사
+      const pointer = scene.input.activePointer;
+      const worldPoint = scene.cameras.main.getWorldPoint(pointer.x, pointer.y);
+      const distance = 600; // 파멸의 일격 사거리
+      const angle = Phaser.Math.Angle.Between(caster.x, caster.y, worldPoint.x, worldPoint.y);
+      targetX = caster.x + Math.cos(angle) * distance;
+      targetY = caster.y + Math.sin(angle) * distance;
+      targetMonster = null;
+    }
+
+    const strikeColor = 0xFF4500;
+
+    // 충격파 라인
+    const shockwave = scene.add.rectangle(
+      startX, startY, 20, 60, strikeColor, 0.9
+    );
+    shockwave.setDepth(100);
+    shockwave.setRotation(Phaser.Math.Angle.Between(startX, startY, targetX, targetY));
+
+    // 충격파 이동 애니메이션
+    scene.tweens.add({
+      targets: shockwave,
+      x: targetX,
+      y: targetY,
+      scaleX: 3,
+      alpha: 0,
+      duration: 300,
+      onComplete: () => shockwave.destroy()
+    });
+
+    // 다중 충격파 파티클
+    for (let i = 0; i < 12; i++) {
+      scene.time.delayedCall(i * 20, () => {
+        const angle = Phaser.Math.Angle.Between(startX, startY, targetX, targetY) + (Math.random() - 0.5) * 0.8;
+        const distance = 50 + Math.random() * 100;
+        const particleX = startX + Math.cos(angle) * distance;
+        const particleY = startY + Math.sin(angle) * distance;
+
+        const particle = scene.add.circle(particleX, particleY, 4 + Math.random() * 4, strikeColor, 0.8);
+        particle.setDepth(101);
+
+        scene.tweens.add({
+          targets: particle,
+          x: targetX + (Math.random() - 0.5) * 80,
+          y: targetY + (Math.random() - 0.5) * 80,
+          alpha: 0,
+          scale: 2,
+          duration: 400,
+          onComplete: () => particle.destroy()
+        });
+      });
+    }
+
+    // 타겟 주변 폭발 효과
+    scene.time.delayedCall(250, () => {
+      const explosion = scene.add.circle(targetX, targetY, 40, strikeColor, 0.6);
+      explosion.setDepth(99);
+      scene.tweens.add({
+        targets: explosion,
+        scale: 2.5,
+        alpha: 0,
+        duration: 500,
+        onComplete: () => explosion.destroy()
+      });
+
+      // 폭발 파티클
+      for (let i = 0; i < 20; i++) {
+        const angle = (i / 20) * Math.PI * 2;
+        const distance = 30;
+        const particle = scene.add.circle(
+          targetX + Math.cos(angle) * distance,
+          targetY + Math.sin(angle) * distance,
+          2, strikeColor, 0.9
+        );
+        particle.setDepth(102);
+
+        scene.tweens.add({
+          targets: particle,
+          x: targetX + Math.cos(angle) * (distance + 60),
+          y: targetY + Math.sin(angle) * (distance + 60),
+          alpha: 0,
+          duration: 600,
+          onComplete: () => particle.destroy()
+        });
+      }
+    });
+
+    // 피해 적용 - 범위 피해
+    scene.time.delayedCall(300, () => {
+      const skillDirection = Phaser.Math.Angle.Between(startX, startY, targetX, targetY);
+      const skillRange = 600; // 사거리
+      const skillWidth = 120; // 폭 (범위 피해 너비)
+
+      // 범위 내 몬스터들에게 피해 적용
+      if (scene.monsters) {
+        scene.monsters.getChildren().forEach(monster => {
+          if (monster.isDead) return;
+
+          // 몬스터와 캐스터 사이의 거리와 각도 계산
+          const distanceToMonster = Phaser.Math.Distance.Between(caster.x, caster.y, monster.x, monster.y);
+          const angleToMonster = Phaser.Math.Angle.Between(caster.x, caster.y, monster.x, monster.y);
+
+          // 스킬 사거리 내에 있는지 확인
+          if (distanceToMonster <= skillRange) {
+            // 스킬 방향과의 각도 차이 계산 (라디안)
+            let angleDiff = Math.abs(angleToMonster - skillDirection);
+            angleDiff = Math.min(angleDiff, Math.PI * 2 - angleDiff); // 0-π 범위로 정규화
+
+            // 스킬 폭 내에 있는지 확인 (각도 차이가 작을수록 폭 중앙에 가까움)
+            const maxAngleDiff = Math.atan(skillWidth / 2 / distanceToMonster);
+            if (angleDiff <= maxAngleDiff) {
+              // 범위 내 피해 적용
+              const baseDamage = Math.floor(caster.stats.attack * this.damageMultiplier + this.damage);
+              const comboMultiplier = caster.getComboMultiplier ? caster.getComboMultiplier() : 1.0;
+              const totalDamage = Math.floor(baseDamage * comboMultiplier);
+
+              const result = monster.takeDamage(totalDamage, caster);
+              scene.showDamageText(monster.x, monster.y - 30, result.damage, result.isCrit, result.isEvaded);
+
+              // 콤보 증가 (첫 번째 적에게만 적용)
+              if (!result.isEvaded && caster.increaseCombo && !comboIncreased) {
+                caster.increaseCombo();
+                comboIncreased = true;
+              }
+
+              // 강력한 넉백 적용
+              if (!result.isEvaded && this.knockbackPower > 0) {
+                const knockbackSource = { x: caster.x, y: caster.y };
+                monster.applyKnockback(this.knockbackPower * 1.5, 400, knockbackSource);
+              }
+            }
+          }
+        });
+      }
+    });
+  }
+
+  executeGenericRanged(scene, caster, target) {
+    // 일반 원거리 스킬 (기존 로직)
+    const projectile = scene.add.circle(caster.x, caster.y, 8, 0xFF0000, 0.8);
+    projectile.setDepth(50);
+
+    // 타겟이 없으면 마우스 포인터 사용
+    let targetX, targetY, targetMonster;
+    if (target && !target.isDead) {
+      targetX = target.x;
+      targetY = target.y;
+      targetMonster = target;
+    } else {
+      // 마우스 방향으로 발사
+      const pointer = scene.input.activePointer;
+      const worldPoint = scene.cameras.main.getWorldPoint(pointer.x, pointer.y);
+      const distance = 200; // 발사 거리
+      const angle = Phaser.Math.Angle.Between(caster.x, caster.y, worldPoint.x, worldPoint.y);
+      targetX = caster.x + Math.cos(angle) * distance;
+      targetY = caster.y + Math.sin(angle) * distance;
+      targetMonster = null;
+    }
+
+    scene.tweens.add({
+      targets: projectile,
+      x: targetX,
+      y: targetY,
+      duration: 300,
+      onComplete: () => {
+        projectile.destroy();
+
+        // 타겟이 있으면 피해 적용
+        if (targetMonster && !targetMonster.isDead) {
+          const baseDamage = Math.floor(caster.stats.attack * this.damageMultiplier + this.damage);
+          const comboMultiplier = caster.getComboMultiplier ? caster.getComboMultiplier() : 1.0;
+          const totalDamage = Math.floor(baseDamage * comboMultiplier);
+
+          const result = targetMonster.takeDamage(totalDamage, caster);
+          scene.showDamageText(targetMonster.x, targetMonster.y - 30, result.damage, result.isCrit, result.isEvaded);
+
+          // 콤보 증가
+          if (!result.isEvaded && caster.increaseCombo) {
+            caster.increaseCombo();
+          }
+
+          // 넉백 적용
+          if (!result.isEvaded && this.knockbackPower > 0) {
+            const knockbackSource = { x: caster.x, y: caster.y };
+            targetMonster.applyKnockback(this.knockbackPower, 300, knockbackSource);
+          }
+        }
+      }
+    });
+  }
+}
