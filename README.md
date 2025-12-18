@@ -5,6 +5,8 @@
 > **기술 스택**: Phaser 3 Framework  
 > **장르**: 2D Top-down 액션 RPG  
 > **개발 방향**: 싱글플레이 완성 우선 (멀티플레이는 추후 확장)
+>
+> **GitHub Pages 데모**: [https://mahyun-dev.github.io/AetherChronicle/](https://mahyun-dev.github.io/AetherChronicle/dist)
 
 ---
 
