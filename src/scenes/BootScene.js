@@ -15,7 +15,6 @@ export class BootScene extends Phaser.Scene {
   }
 
   create() {
-    console.log('[BootScene] 초기화 완료');
     
     // PreloadScene으로 전환
     this.scene.start('PreloadScene');

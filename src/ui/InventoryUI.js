@@ -39,13 +39,10 @@ export class InventoryUI {
    * UI 열기
    */
   open() {
-    console.log('[InventoryUI] open() 호출, isOpen:', this.isOpen);
     if (this.isOpen) return;
     
     this.isOpen = true;
-    console.log('[InventoryUI] 인벤토리 창 생성 시작');
     this.create();
-    console.log('[InventoryUI] 인벤토리 창 생성 완료');
     
     // 장비 변경 이벤트 리스너 등록
     this.scene.events.on('equipment:changed', this.onEquipmentChanged, this);
@@ -215,13 +212,10 @@ export class InventoryUI {
               if (this.scene.enhancementUI) {
                 this.scene.enhancementUI.setSelectedEquipment(item);
                 this.scene.enhancementUI.open();
-                console.log('[InventoryUI] 강화 UI로 장비 전송:', item.name);
               }
             } else {
-              console.log('[InventoryUI] 장비 아이템만 강화할 수 있습니다.');
             }
           } else {
-            console.log(`슬롯 ${slotIndex} 클릭 - ${item.name}`);
           }
         }
       }
@@ -470,10 +464,22 @@ export class InventoryUI {
    * 아이템 사용
    */
   useItem(slotIndex) {
+    // 장비 아이템 우클릭 장착 처리
+    const item = this.inventory.slots[slotIndex];
+    if (item && item.constructor && item.constructor.name === 'Equipment') {
+      // 인벤토리 매니저의 equipItem 사용 (일관성 보장)
+      const result = this.inventory.equipItem(slotIndex);
+      this.updateAllSlots();
+      if (result) {
+        this.scene.events.emit('log', `${item.name} 장착 완료!`);
+      } else {
+        this.scene.events.emit('log', `${item.name} 장착 실패 (레벨 부족 등)`);
+      }
+      return;
+    }
+    // 기존 소모품/기타 아이템 처리
     const success = this.inventory.useItem(slotIndex);
-    
     if (success) {
-      // 슬롯 업데이트
       this.updateAllSlots();
     }
   }
