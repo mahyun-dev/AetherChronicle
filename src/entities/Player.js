@@ -1178,7 +1178,7 @@ export class Player extends Entity {
         this.stats.maxMp += amount * 3; // INT당 MP +3
         this.stats.mp += amount * 3; // 현재 MP도 증가
         
-        // INT 100 달성 시 메이지 -> 퓨전리스트 전직 확인
+        // INT 100 달성 시 메이지 -> 윱합술사 전직 확인
         if (this.characterClass === 'mage' && this.stats.int >= 100 && !this.hasFusionistClassChange) {
           this.hasFusionistClassChange = true; // 중복 확인 방지
           this.scene.events.emit('player:fusionist_class_change_available');
