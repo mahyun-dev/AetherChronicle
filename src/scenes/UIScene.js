@@ -290,6 +290,16 @@ export class UIScene extends Phaser.Scene {
       icon.on('pointerdown', () => {
         if (menuIcons[i] === 'I' && this.inventoryUI) {
           this.inventoryUI.toggle();
+        }else if (menuIcons[i] === 'E' && this.equipmentUI) {
+          this.equipmentUI.toggle();
+        }else if (menuIcons[i] === 'K') {
+          console.log('스킬창 열기 (구현 예정)');
+        }else if (menuIcons[i] === 'H' && this.enhancementUI) { 
+          this.enhancementUI.toggle();
+        }else if (menuIcons[i] === 'L' && this.questUI) {
+          this.questUI.toggle();
+        }else if (menuIcons[i] === 'N' && this.statsUI) {
+          this.statsUI.toggle();
         }
       });
     }
@@ -899,6 +909,70 @@ export class UIScene extends Phaser.Scene {
     
     // 게임 재개
     this.scene.resume('GameScene');
+  }
+
+  /**
+   * 퀘스트 트래커 업데이트
+   */
+  updateQuestTracker() {
+    if (!this.player || !this.player.questManager || !this.questTrackerItems) return;
+    
+    // 진행 중인 퀘스트 가져오기 (최대 3개)
+    const activeQuests = this.player.questManager.getActiveQuests().slice(0, 3);
+    
+    // 각 트래커 항목 업데이트
+    this.questTrackerItems.forEach((item, index) => {
+      if (index < activeQuests.length) {
+        const quest = activeQuests[index];
+        item.quest = quest;
+        
+        // 퀘스트 이름 표시
+        item.nameText.setText(quest.name);
+        item.nameText.setVisible(true);
+        
+        // 완료 가능 시 금색 표시
+        if (quest.isAllObjectivesComplete()) {
+          item.nameText.setColor('#FFD700');
+        } else {
+          item.nameText.setColor('#FFFFFF');
+        }
+        
+        // 목표 표시 (최대 2개)
+        const objectives = quest.objectives.slice(0, 2);
+        
+        if (objectives[0]) {
+          const obj = objectives[0];
+          const isDone = obj.current >= obj.required;
+          const icon = isDone ? '✓' : '○';
+          const color = isDone ? '#4CAF50' : '#AAAAAA';
+          
+          item.objective1Text.setText(`${icon} ${obj.description.substring(0, 20)} (${obj.current}/${obj.required})`);
+          item.objective1Text.setColor(color);
+          item.objective1Text.setVisible(true);
+        } else {
+          item.objective1Text.setVisible(false);
+        }
+        
+        if (objectives[1]) {
+          const obj = objectives[1];
+          const isDone = obj.current >= obj.required;
+          const icon = isDone ? '✓' : '○';
+          const color = isDone ? '#4CAF50' : '#AAAAAA';
+          
+          item.objective2Text.setText(`${icon} ${obj.description.substring(0, 20)} (${obj.current}/${obj.required})`);
+          item.objective2Text.setColor(color);
+          item.objective2Text.setVisible(true);
+        } else {
+          item.objective2Text.setVisible(false);
+        }
+      } else {
+        // 빈 슬롯
+        item.quest = null;
+        item.nameText.setVisible(false);
+        item.objective1Text.setVisible(false);
+        item.objective2Text.setVisible(false);
+      }
+    });
   }
 
 }

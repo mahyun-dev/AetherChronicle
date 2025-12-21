@@ -1200,23 +1200,23 @@ export class Player extends Entity {
   }
 
   /**
-   * 퓨전리스트로 클래스 변경
+   * 융합술사 클래스 변경
    */
   changeToFusionist() {
     if (this.characterClass !== 'mage') {
-      console.log('[Player] 메이지 클래스만 퓨전리스트로 전직할 수 있습니다.');
+      console.log('[Player] 메이지 클래스만 융합술사로 전직할 수 있습니다.');
       return false;
     }
 
     this.characterClass = 'fusionist';
     
-    // 퓨전리스트 스킬 로드
+    // 융합술사 스킬 로드
     this.loadSkills();
     
     // 이벤트 발생 (UI 업데이트용)
     this.scene.events.emit('player:class_changed', 'fusionist');
     
-    console.log('[Player] 퓨전리스트로 전직했습니다!');
+    console.log('[Player] 융합술사로 전직했습니다!');
     return true;
   }
 
