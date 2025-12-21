@@ -52,7 +52,7 @@ export class UIScene extends Phaser.Scene {
     });
 
     gameScene.events.on('player:level_up', (level) => {
-      this.playerNameText.setText(`[Lv ${level}] 플레이어`);
+      this.playerNameText.setText(`[Lv ${level}] ${this.player.getClassName()}`);
     });
 
     gameScene.events.on('player:gold_changed', (gold) => {
@@ -61,6 +61,11 @@ export class UIScene extends Phaser.Scene {
     
     gameScene.events.on('player:combo_changed', (combo) => {
       this.updateCombo(combo);
+    });
+    
+    // 융합술사 전직 이벤트 리스너
+    gameScene.events.on('player:fusionist_class_change_available', () => {
+      this.showFusionistClassChangeDialog();
     });
     
     // 퀘스트 이벤트 리스너
@@ -91,7 +96,7 @@ export class UIScene extends Phaser.Scene {
     
     // 플레이어 레벨과 스탯 초기화 (UI가 생성된 경우에만)
     if (this.playerNameText) {
-      this.playerNameText.setText(`[Lv ${player.level}] 플레이어`);
+      this.playerNameText.setText(`[Lv ${player.level}] ${player.getClassName()}`);
     }
     if (this.updateHP) {
       this.updateHP(player.stats.hp, player.stats.maxHp);
@@ -244,11 +249,11 @@ export class UIScene extends Phaser.Scene {
     this.createComboUI();
 
     // 우측 하단 - 메뉴 아이콘
-    const menuIcons = ['I', 'K', 'L', 'M'];
-    const iconLabels = ['인벤토리', '스킬', '퀘스트', '맵'];
+    const menuIcons = ['I', 'E', 'K', 'L', 'N', 'H'];
+    const iconLabels = ['인벤토리', '장비', '스킬', '퀘스트', '스탯', '강화'];
     
     for (let i = 0; i < menuIcons.length; i++) {
-      const x = width - 200 + (i * 50);
+      const x = width - 300 + (i * 50);
       const y = height - 40;
       
       const icon = this.add.rectangle(x, y, 40, 40, 0x333333, 0.8);
@@ -283,7 +288,9 @@ export class UIScene extends Phaser.Scene {
       });
       
       icon.on('pointerdown', () => {
-        console.log(`${iconLabels[i]} 열기 (구현 예정)`);
+        if (menuIcons[i] === 'I' && this.inventoryUI) {
+          this.inventoryUI.toggle();
+        }
       });
     }
   }
@@ -720,67 +727,180 @@ export class UIScene extends Phaser.Scene {
   }
 
   /**
-   * 퀘스트 트래커 업데이트
+   * 퓨전리스트 전직 수락/거절 창 표시
    */
-  updateQuestTracker() {
-    if (!this.player || !this.player.questManager || !this.questTrackerItems) return;
+  showFusionistClassChangeDialog() {
+    console.log('[UIScene] 퓨전리스트 전직 창 표시');
     
-    // 진행 중인 퀘스트 가져오기 (최대 3개)
-    const activeQuests = this.player.questManager.getActiveQuests().slice(0, 3);
+    // 게임 일시 정지
+    this.scene.pause('GameScene');
     
-    // 각 트래커 항목 업데이트
-    this.questTrackerItems.forEach((item, index) => {
-      if (index < activeQuests.length) {
-        const quest = activeQuests[index];
-        item.quest = quest;
-        
-        // 퀘스트 이름 표시
-        item.nameText.setText(quest.name);
-        item.nameText.setVisible(true);
-        
-        // 완료 가능 시 금색 표시
-        if (quest.isAllObjectivesComplete()) {
-          item.nameText.setColor('#FFD700');
-        } else {
-          item.nameText.setColor('#FFFFFF');
-        }
-        
-        // 목표 표시 (최대 2개)
-        const objectives = quest.objectives.slice(0, 2);
-        
-        if (objectives[0]) {
-          const obj = objectives[0];
-          const isDone = obj.current >= obj.required;
-          const icon = isDone ? '✓' : '○';
-          const color = isDone ? '#4CAF50' : '#AAAAAA';
-          
-          item.objective1Text.setText(`${icon} ${obj.description.substring(0, 20)} (${obj.current}/${obj.required})`);
-          item.objective1Text.setColor(color);
-          item.objective1Text.setVisible(true);
-        } else {
-          item.objective1Text.setVisible(false);
-        }
-        
-        if (objectives[1]) {
-          const obj = objectives[1];
-          const isDone = obj.current >= obj.required;
-          const icon = isDone ? '✓' : '○';
-          const color = isDone ? '#4CAF50' : '#AAAAAA';
-          
-          item.objective2Text.setText(`${icon} ${obj.description.substring(0, 20)} (${obj.current}/${obj.required})`);
-          item.objective2Text.setColor(color);
-          item.objective2Text.setVisible(true);
-        } else {
-          item.objective2Text.setVisible(false);
-        }
-      } else {
-        // 빈 슬롯
-        item.quest = null;
-        item.nameText.setVisible(false);
-        item.objective1Text.setVisible(false);
-        item.objective2Text.setVisible(false);
+    // 배경 오버레이
+    const overlay = this.add.rectangle(
+      this.cameras.main.width / 2,
+      this.cameras.main.height / 2,
+      this.cameras.main.width,
+      this.cameras.main.height,
+      0x000000,
+      0.7
+    );
+    overlay.setDepth(900);
+    
+    // 메인 창
+    const dialogWidth = 600;
+    const dialogHeight = 500;
+    const dialogX = this.cameras.main.width / 2;
+    const dialogY = this.cameras.main.height / 2;
+    
+    const dialogBg = this.add.rectangle(dialogX, dialogY, dialogWidth, dialogHeight, 0x1a1a2e, 0.95);
+    dialogBg.setStrokeStyle(3, 0xFFD700);
+    dialogBg.setDepth(1000);
+    
+    // 제목
+    const title = this.add.text(dialogX, dialogY - 220, '🔮 히든 직업 전직', {
+      font: 'bold 28px Arial',
+      fill: '#FFD700'
+    });
+    title.setOrigin(0.5);
+    title.setDepth(1001);
+    
+    // 융합술사 설명
+    const fusionistDesc = this.add.text(dialogX, dialogY - 180, 
+      '마법사의 지능이 100에 도달하여 히든 직업 "융합술사"로 전직할 수 있습니다!\n\n' +
+      '융합술사는 마법의 근본 원리를 이해하고, 서로 다른 속성을 융합하여\n' +
+      '강력한 새로운 마법을 창조하는 존재입니다.',
+      {
+        font: '16px Arial',
+        fill: '#FFFFFF',
+        align: 'center',
+        wordWrap: { width: dialogWidth - 40 }
+      }
+    );
+    fusionistDesc.setOrigin(0.5);
+    fusionistDesc.setDepth(1001);
+    
+    // 스킬 설명 제목
+    const skillsTitle = this.add.text(dialogX, dialogY - 100, '습득 가능한 스킬:', {
+      font: 'bold 18px Arial',
+      fill: '#FFD700'
+    });
+    skillsTitle.setOrigin(0.5);
+    skillsTitle.setDepth(1001);
+    
+    // 스킬 목록
+    const skillsText = this.add.text(dialogX, dialogY - 70,
+      '• 속성 탄환: 선택한 속성 탄환 발사 (110% 피해)\n' +
+      '• 마력 장벽: 전방 투사체 방어 및 피해 흡수\n' +
+      '• 불안정한 파동: 주변 적 밀쳐내기 (130% 피해)\n' +
+      '• 마력 공명: 스킬 위력 증가 및 마나 회수\n' +
+      '• 원소 융합: 두 스킬을 융합하여 새로운 스킬 생성',
+      {
+        font: '14px Arial',
+        fill: '#AAAAAA',
+        align: 'left',
+        wordWrap: { width: dialogWidth - 40 }
+      }
+    );
+    skillsText.setOrigin(0.5);
+    skillsText.setDepth(1001);
+    
+    // 질문
+    const question = this.add.text(dialogX, dialogY + 50, '융합술사로 전직하시겠습니까?', {
+      font: 'bold 20px Arial',
+      fill: '#FFFFFF'
+    });
+    question.setOrigin(0.5);
+    question.setDepth(1001);
+    
+    // 수락 버튼
+    const acceptBtn = this.add.rectangle(dialogX - 100, dialogY + 120, 120, 40, 0x4CAF50, 0.8);
+    acceptBtn.setStrokeStyle(2, 0xFFFFFF);
+    acceptBtn.setInteractive({ useHandCursor: true });
+    acceptBtn.setDepth(1001);
+    
+    const acceptText = this.add.text(dialogX - 100, dialogY + 120, '수락', {
+      font: 'bold 16px Arial',
+      fill: '#FFFFFF'
+    });
+    acceptText.setOrigin(0.5);
+    acceptText.setDepth(1002);
+    
+    // 거절 버튼
+    const rejectBtn = this.add.rectangle(dialogX + 100, dialogY + 120, 120, 40, 0xF44336, 0.8);
+    rejectBtn.setStrokeStyle(2, 0xFFFFFF);
+    rejectBtn.setInteractive({ useHandCursor: true });
+    rejectBtn.setDepth(1001);
+    
+    const rejectText = this.add.text(dialogX + 100, dialogY + 120, '거절', {
+      font: 'bold 16px Arial',
+      fill: '#FFFFFF'
+    });
+    rejectText.setOrigin(0.5);
+    rejectText.setDepth(1002);
+    
+    // 버튼 이벤트
+    acceptBtn.on('pointerdown', () => {
+      this.acceptFusionistClassChange();
+      this.closeFusionistDialog(overlay, dialogBg, title, fusionistDesc, skillsTitle, skillsText, question, acceptBtn, acceptText, rejectBtn, rejectText);
+    });
+    
+    rejectBtn.on('pointerdown', () => {
+      this.rejectFusionistClassChange();
+      this.closeFusionistDialog(overlay, dialogBg, title, fusionistDesc, skillsTitle, skillsText, question, acceptBtn, acceptText, rejectBtn, rejectText);
+    });
+    
+    // 버튼 호버 효과
+    acceptBtn.on('pointerover', () => acceptBtn.setFillStyle(0x66BB6A, 0.9));
+    acceptBtn.on('pointerout', () => acceptBtn.setFillStyle(0x4CAF50, 0.8));
+    rejectBtn.on('pointerover', () => rejectBtn.setFillStyle(0xEF5350, 0.9));
+    rejectBtn.on('pointerout', () => rejectBtn.setFillStyle(0xF44336, 0.8));
+  }
+  
+  /**
+   * 퓨전리스트 전직 수락
+   */
+  acceptFusionistClassChange() {
+    console.log('[UIScene] 퓨전리스트 전직 수락');
+    
+    if (this.player) {
+      // 직업 변경
+      this.player.characterClass = 'fusionist';
+      
+      // 기존 스킬 보유
+      this.player.retainedSkills = [...Object.values(this.player.skills)].filter(skill => skill);
+      
+      // 융합술사 스킬 로드
+      this.player.loadSkills();
+      
+      // UI 업데이트
+      this.playerNameText.setText(`[Lv ${this.player.level}] ${this.player.getClassName()}`);
+      
+      console.log('[UIScene] 퓨전리스트 전직 완료');
+    }
+  }
+  
+  /**
+   * 퓨전리스트 전직 거절
+   */
+  rejectFusionistClassChange() {
+    console.log('[UIScene] 퓨전리스트 전직 거절');
+    // 다음 레벨업 시 다시 제안 (현재는 단순히 거절만 처리)
+  }
+  
+  /**
+   * 퓨전리스트 전직 창 닫기
+   */
+  closeFusionistDialog(...elements) {
+    elements.forEach(element => {
+      if (element && element.destroy) {
+        element.destroy();
       }
     });
+    
+    // 게임 재개
+    this.scene.resume('GameScene');
   }
 
 }
+
+

@@ -143,9 +143,9 @@ export class Player extends Entity {
       case 'archer':
         return '궁수';
       case 'rogue':
-        return '로그';
+        return '도적';
       case 'fusionist':
-        return '퓨전리스트';
+        return '융합술사';
       default:
         return '플레이어';
     }
@@ -1178,8 +1178,8 @@ export class Player extends Entity {
         this.stats.maxMp += amount * 3; // INT당 MP +3
         this.stats.mp += amount * 3; // 현재 MP도 증가
         
-        // INT 10 달성 시 메이지 -> 퓨전리스트 전직 확인
-        if (this.characterClass === 'mage' && this.stats.int >= 10 && !this.hasFusionistClassChange) {
+        // INT 100 달성 시 메이지 -> 퓨전리스트 전직 확인
+        if (this.characterClass === 'mage' && this.stats.int >= 100 && !this.hasFusionistClassChange) {
           this.hasFusionistClassChange = true; // 중복 확인 방지
           this.scene.events.emit('player:fusionist_class_change_available');
         }
