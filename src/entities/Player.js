@@ -22,6 +22,7 @@ export class Player extends Entity {
     });
 
     this.characterClass = characterClass;
+    this.hasFusionistClassChange = false; // 퓨전리스트 전직 확인 플래그
     this.level = 30; 
     this.stats.level = this.level; // stats.level도 동기화
     this.exp = 0;
@@ -195,6 +196,26 @@ export class Player extends Entity {
 
     // 테스트용 골드 지급
     this.gold = 100000;
+  }
+  
+  /**
+   * 클래스 이름을 한국어로 반환
+   */
+  getClassName() {
+    switch (this.characterClass) {
+      case 'warrior':
+        return '전사';
+      case 'mage':
+        return '마법사';
+      case 'archer':
+        return '궁수';
+      case 'rogue':
+        return '로그';
+      case 'fusionist':
+        return '퓨전리스트';
+      default:
+        return '플레이어';
+    }
   }
   
   /**
@@ -964,6 +985,12 @@ export class Player extends Entity {
       case 'int':
         this.stats.maxMp += amount * 3; // INT당 MP +3
         this.stats.mp += amount * 3; // 현재 MP도 증가
+        
+        // INT 10 달성 시 메이지 -> 퓨전리스트 전직 확인
+        if (this.characterClass === 'mage' && this.stats.int >= 10 && !this.hasFusionistClassChange) {
+          this.hasFusionistClassChange = true; // 중복 확인 방지
+          this.scene.events.emit('player:fusionist_class_change_available');
+        }
         break;
       case 'dex':
         this.stats.critRate += amount * 0.5; // DEX당 치명타 확률 +0.5%
@@ -977,6 +1004,27 @@ export class Player extends Entity {
     this.scene.events.emit('player:hp_changed', this.stats.hp, this.stats.maxHp);
     this.scene.events.emit('player:mp_changed', this.stats.mp, this.stats.maxMp);
     
+    return true;
+  }
+
+  /**
+   * 퓨전리스트로 클래스 변경
+   */
+  changeToFusionist() {
+    if (this.characterClass !== 'mage') {
+      console.log('[Player] 메이지 클래스만 퓨전리스트로 전직할 수 있습니다.');
+      return false;
+    }
+
+    this.characterClass = 'fusionist';
+    
+    // 퓨전리스트 스킬 로드
+    this.loadSkills();
+    
+    // 이벤트 발생 (UI 업데이트용)
+    this.scene.events.emit('player:class_changed', 'fusionist');
+    
+    console.log('[Player] 퓨전리스트로 전직했습니다!');
     return true;
   }
 }
