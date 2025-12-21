@@ -1,0 +1,202 @@
+{
+  "recipes": [
+    {
+      "ingredients": ["화염 폭발", "돌진 베기"],
+      "result": "fusion_flare_dash",
+      "name": "화염 돌격",
+      "description": "화염을 두르고 돌진하며 경로에 폭발을 일으킴"
+    },
+    {
+      "ingredients": ["냉기 파동", "관통 화살"],
+      "result": "fusion_ice_pierce",
+      "name": "만년설 송곳",
+      "description": "적을 관통하며 경로의 모든 적을 빙결시킴"
+    },
+    {
+      "ingredients": ["회전 베기", "마력탄"],
+      "result": "fusion_magic_spin",
+      "name": "마력 회전 베기",
+      "description": "마력을 실은 회전 베기로 주변 적들에게 마법 피해"
+    },
+    {
+      "ingredients": ["파멸의 일격", "시간 왜곡"],
+      "result": "fusion_time_doom",
+      "name": "시간 파멸",
+      "description": "시간을 왜곡시키는 파멸의 충격파로 적들을 영원히 묶음"
+    },
+    {
+      "ingredients": ["돌진 베기", "관통 화살"],
+      "result": "fusion_pierce_dash",
+      "name": "관통 돌진",
+      "description": "돌진하며 적을 관통하는 화살을 발사"
+    },
+    {
+      "ingredients": ["방어 자세", "마력 장벽"],
+      "result": "fusion_enhanced_barrier",
+      "name": "강화 방벽",
+      "description": "물리와 마법 방어력이 모두 상승하는 강화된 방벽"
+    },
+    {
+      "ingredients": ["화염 폭발", "독화살"],
+      "result": "fusion_poison_flame",
+      "name": "독성 화염",
+      "description": "독이 섞인 화염 폭발로 적을 불태우고 중독시킴"
+    },
+    {
+      "ingredients": ["냉기 파동", "그림자 베기"],
+      "result": "fusion_shadow_ice",
+      "name": "그림자 냉기",
+      "description": "그림자 속에서 냉기를 뿜어내는 은밀한 공격"
+    },
+    {
+      "ingredients": ["시간 왜곡", "환영 분신"],
+      "result": "fusion_time_clone",
+      "name": "시간 분신",
+      "description": "시간을 조작하여 다수의 분신을 생성"
+    },
+    {
+      "ingredients": ["관통 화살", "속성 탄환"],
+      "result": "fusion_enhanced_arrow",
+      "name": "속성 관통 화살",
+      "description": "속성이 부여된 관통 화살로 다중 속성 피해"
+    },
+    {
+      "ingredients": ["후퇴 사격", "불안정한 파동"],
+      "result": "fusion_retreat_wave",
+      "name": "후퇴 파동",
+      "description": "후퇴하며 불안정한 파동을 발사"
+    },
+    {
+      "ingredients": ["독화살", "원소 융합"],
+      "result": "fusion_poison_element",
+      "name": "독성 원소",
+      "description": "독과 원소가 융합된 강력한 화살"
+    },
+    {
+      "ingredients": ["폭풍우 화살", "화염 폭발"],
+      "result": "fusion_storm_flame",
+      "name": "폭풍 화염",
+      "description": "폭풍과 화염이 뒤섞인 파괴적인 폭발"
+    },
+    {
+      "ingredients": ["그림자 밟기", "돌진 베기"],
+      "result": "fusion_shadow_dash",
+      "name": "그림자 돌진",
+      "description": "그림자 속으로 돌진하며 적을 기습"
+    },
+    {
+      "ingredients": ["독 칠하기", "냉기 파동"],
+      "result": "fusion_poison_ice",
+      "name": "독성 냉기",
+      "description": "독이 섞인 냉기 파동으로 적을 동결시키고 중독"
+    },
+    {
+      "ingredients": ["그림자 베기", "회전 베기"],
+      "result": "fusion_shadow_spin",
+      "name": "그림자 회전",
+      "description": "그림자 속에서 회전하며 다중 베기"
+    },
+    {
+      "ingredients": ["환영 분신", "폭풍우 화살"],
+      "result": "fusion_clone_storm",
+      "name": "분신 폭풍",
+      "description": "분신들이 동시에 화살 폭풍을 발사"
+    },
+    {
+      "ingredients": ["속성 탄환", "마력탄"],
+      "result": "fusion_element_magic",
+      "name": "속성 마력탄",
+      "description": "속성이 부여된 강화 마력탄"
+    },
+    {
+      "ingredients": ["마력 장벽", "방어 자세"],
+      "result": "fusion_magic_defense",
+      "name": "마력 방어",
+      "description": "마력으로 강화된 방어 자세"
+    },
+    {
+      "ingredients": ["불안정한 파동", "시간 왜곡"],
+      "result": "fusion_unstable_time",
+      "name": "불안정한 시간",
+      "description": "시간을 불안정하게 왜곡시키는 파동"
+    },
+    {
+      "ingredients": ["원소 융합", "파멸의 일격"],
+      "result": "fusion_element_doom",
+      "name": "원소 파멸",
+      "description": "원소 융합된 파멸의 일격"
+    },
+    {
+      "ingredients": ["돌진 베기", "속성 탄환"],
+      "result": "fusion_dash_element",
+      "name": "속성 돌진",
+      "description": "속성 탄환을 실은 돌진 공격"
+    },
+    {
+      "ingredients": ["화염 폭발", "마력 장벽"],
+      "result": "fusion_flame_barrier",
+      "name": "화염 장벽",
+      "description": "화염으로 보호하는 마력 장벽"
+    },
+    {
+      "ingredients": ["냉기 파동", "불안정한 파동"],
+      "result": "fusion_ice_unstable",
+      "name": "불안정한 냉기",
+      "description": "불안정한 냉기 파동"
+    },
+    {
+      "ingredients": ["시간 왜곡", "원소 융합"],
+      "result": "fusion_time_element",
+      "name": "시간 원소",
+      "description": "시간과 원소가 융합된 강력한 마법"
+    },
+    {
+      "ingredients": ["관통 화살", "그림자 베기"],
+      "result": "fusion_arrow_shadow",
+      "name": "그림자 화살",
+      "description": "그림자 속에서 발사되는 관통 화살"
+    },
+    {
+      "ingredients": ["후퇴 사격", "환영 분신"],
+      "result": "fusion_retreat_clone",
+      "name": "분신 후퇴",
+      "description": "분신들과 함께 후퇴하며 사격"
+    },
+    {
+      "ingredients": ["독화살", "그림자 밟기"],
+      "result": "fusion_poison_shadow",
+      "name": "독성 그림자",
+      "description": "독이 든 그림자 밟기"
+    },
+    {
+      "ingredients": ["폭풍우 화살", "독 칠하기"],
+      "result": "fusion_storm_poison",
+      "name": "독성 폭풍",
+      "description": "독이 섞인 화살 폭풍"
+    },
+    {
+      "ingredients": ["그림자 밟기", "속성 탄환"],
+      "result": "fusion_shadow_element",
+      "name": "속성 그림자",
+      "description": "속성 탄환을 실은 그림자 밟기"
+    },
+    {
+      "ingredients": ["독 칠하기", "원소 융합"],
+      "result": "fusion_poison_element_fusion",
+      "name": "독성 원소 융합",
+      "description": "독과 원소가 완벽하게 융합된 공격"
+    },
+    {
+      "ingredients": ["그림자 베기", "불안정한 파동"],
+      "result": "fusion_shadow_wave",
+      "name": "그림자 파동",
+      "description": "그림자 속에서 발사되는 불안정한 파동"
+    },
+    {
+      "ingredients": ["환영 분신", "마력 장벽"],
+      "result": "fusion_clone_barrier",
+      "name": "분신 장벽",
+      "description": "분신들이 함께 방어하는 마력 장벽"
+    }
+  ]
+}
