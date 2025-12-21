@@ -42,9 +42,9 @@ export class Monster extends Entity {
     this.baseSpeed = config.speed || 80;
     this.baseAttack = config.attack || 5;
 
-    // 몬스터 스프라이트 (임시)
-    const size = this.isBoss ? 64 : 32;
-    this.sprite = scene.add.rectangle(0, 0, size, size, config.color || 0x00FF00);
+    // 몬스터 스프라이트
+    this.sprite = scene.add.sprite(0, 0, this.monsterType);
+    this.sprite.setScale(this.isBoss ? 2 : 1);
     this.add(this.sprite);
 
     this.setDepth(DEPTH.ENTITIES);

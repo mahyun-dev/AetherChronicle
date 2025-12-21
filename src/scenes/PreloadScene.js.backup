@@ -150,47 +150,6 @@ export class PreloadScene extends Phaser.Scene {
    * 캐릭터 스프라이트 로드
    */
   loadCharacterSprites() {
-    // 캐릭터 스프라이트 시트 로드 (각 방향별로 8프레임)
-    this.load.spritesheet('idle_down', 'assets/images/characters/IDLE/idle_down.png', {
-      frameWidth: 96, frameHeight: 80
-    });
-    this.load.spritesheet('idle_left', 'assets/images/characters/IDLE/idle_left.png', {
-      frameWidth: 96, frameHeight: 80
-    });
-    this.load.spritesheet('idle_right', 'assets/images/characters/IDLE/idle_right.png', {
-      frameWidth: 96, frameHeight: 80
-    });
-    this.load.spritesheet('idle_up', 'assets/images/characters/IDLE/idle_up.png', {
-      frameWidth: 96, frameHeight: 80
-    });
-
-    // RUN 애니메이션
-    this.load.spritesheet('run_down', 'assets/images/characters/RUN/run_down.png', {
-      frameWidth: 96, frameHeight: 80
-    });
-    this.load.spritesheet('run_left', 'assets/images/characters/RUN/run_left.png', {
-      frameWidth: 96, frameHeight: 80
-    });
-    this.load.spritesheet('run_right', 'assets/images/characters/RUN/run_right.png', {
-      frameWidth: 96, frameHeight: 80
-    });
-    this.load.spritesheet('run_up', 'assets/images/characters/RUN/run_up.png', {
-      frameWidth: 96, frameHeight: 80
-    });
-
-    // ATTACK1 애니메이션
-    this.load.spritesheet('attack1_down', 'assets/images/characters/ATTACK 1/attack1_down.png', {
-      frameWidth: 96, frameHeight: 80
-    });
-    this.load.spritesheet('attack1_left', 'assets/images/characters/ATTACK 1/attack1_left.png', {
-      frameWidth: 96, frameHeight: 80
-    });
-    this.load.spritesheet('attack1_right', 'assets/images/characters/ATTACK 1/attack1_right.png', {
-      frameWidth: 96, frameHeight: 80
-    });
-    this.load.spritesheet('attack1_up', 'assets/images/characters/ATTACK 1/attack1_up.png', {
-      frameWidth: 96, frameHeight: 80
-    });
     // IDLE 애니메이션
     this.load.image('idle_down', 'assets/images/characters/IDLE/idle_down.png');
     this.load.image('idle_left', 'assets/images/characters/IDLE/idle_left.png');
