@@ -129,9 +129,20 @@ export default class NPC extends Phaser.GameObjects.Sprite {
     }
 
     openQuestDialog() {
+        let availableQuests = [...this.quests];
+        
+        // fusionist_master의 경우 특별 처리
+        if (this.name === '융합술사 스승') {
+            const player = this.scene.player;
+            if (player && player.characterClass === 'mage' && player.level >= 20 && !availableQuests.includes('fusionist_class_change')) {
+                // fusionist 전직 퀘스트 추가
+                availableQuests.push('fusionist_class_change');
+            }
+        }
+        
         this.scene.events.emit('npc:quests', {
             npc: this,
-            quests: this.quests
+            quests: availableQuests
         });
     }
 

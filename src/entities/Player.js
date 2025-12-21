@@ -1311,12 +1311,8 @@ export class Player extends Entity {
       frames: [
         { key: 'run_down', frame: 0 },
         { key: 'run_down', frame: 1 },
-        { key: 'run_down', frame: 2 },
-        { key: 'run_down', frame: 3 },
-        { key: 'run_down', frame: 4 },
-        { key: 'run_down', frame: 5 },
-        { key: 'run_down', frame: 6 },
-        { key: 'run_down', frame: 7 }
+        { key: 'run_down', frame: 0 },
+        { key: 'run_down', frame: 2 }
       ],
       frameRate: 8,
       repeat: -1
@@ -1326,12 +1322,8 @@ export class Player extends Entity {
       frames: [
         { key: 'run_left', frame: 0 },
         { key: 'run_left', frame: 1 },
-        { key: 'run_left', frame: 2 },
-        { key: 'run_left', frame: 3 },
-        { key: 'run_left', frame: 4 },
-        { key: 'run_left', frame: 5 },
-        { key: 'run_left', frame: 6 },
-        { key: 'run_left', frame: 7 }
+        { key: 'run_left', frame: 0 },
+        { key: 'run_left', frame: 2 }
       ],
       frameRate: 8,
       repeat: -1
@@ -1341,12 +1333,8 @@ export class Player extends Entity {
       frames: [
         { key: 'run_right', frame: 0 },
         { key: 'run_right', frame: 1 },
-        { key: 'run_right', frame: 2 },
-        { key: 'run_right', frame: 3 },
-        { key: 'run_right', frame: 4 },
-        { key: 'run_right', frame: 5 },
-        { key: 'run_right', frame: 6 },
-        { key: 'run_right', frame: 7 }
+        { key: 'run_right', frame: 0 },
+        { key: 'run_right', frame: 2 }
       ],
       frameRate: 8,
       repeat: -1
@@ -1356,12 +1344,8 @@ export class Player extends Entity {
       frames: [
         { key: 'run_up', frame: 0 },
         { key: 'run_up', frame: 1 },
-        { key: 'run_up', frame: 2 },
-        { key: 'run_up', frame: 3 },
-        { key: 'run_up', frame: 4 },
-        { key: 'run_up', frame: 5 },
-        { key: 'run_up', frame: 6 },
-        { key: 'run_up', frame: 7 }
+        { key: 'run_up', frame: 0 },
+        { key: 'run_up', frame: 2 }
       ],
       frameRate: 8,
       repeat: -1
