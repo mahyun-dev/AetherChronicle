@@ -6,11 +6,17 @@ import { QuestManager } from '../managers/QuestManager.js';
 import { createSkill } from './Skill.js';
 import { DataManager } from '../managers/DataManager.js';
 import { EquipmentManager } from './Equipment.js';
+import { EquipmentEffects } from './EquipmentEffects.js';
 
 /**
  * Player - 플레이어 캐릭터 클래스
  */
 export class Player extends Entity {
+    /**
+     * 마지막 이동 방향 (idle 상태에서 사용)
+     * @type {'down'|'up'|'left'|'right'}
+     */
+    lastMoveDirection = 'down';
   constructor(scene, x, y, characterClass = 'warrior') {
     super(scene, x, y, {
       maxHp: 100,
@@ -23,18 +29,40 @@ export class Player extends Entity {
 
     this.characterClass = characterClass;
     this.hasFusionistClassChange = false; // 퓨전리스트 전직 확인 플래그
-    this.level = 30; 
+    this.level = 50; 
     this.stats.level = this.level; // stats.level도 동기화
     this.exp = 0;
     this.gold = 0;
     this.statPoints = 1000; // 레벨업 시 얻는 스탯 포인트
 
-    // 플레이어 스프라이트 생성 (임시로 사각형)
-    this.sprite = scene.add.rectangle(0, 0, 32, 32, 0xFFD700);
-    this.add(this.sprite);
+    // 테스트용 지능 스탯 설정
+    this.stats.int = 99;
+
+    // 현재 재생 중인 애니메이션 키
+    this.currentAnimation = null;
+
+    // 이동 키 상태 추적
+    this.movingKeys = {
+      up: false,
+      down: false,
+      left: false,
+      right: false
+    };
+
+    // 플레이어 스프라이트 생성 (씬에 직접 추가하여 애니메이션 문제 해결)
+    this.sprite = this.scene.add.sprite(0, 0, 'idle_down', 0);
+    this.sprite.setScale(1);
+    // Container에 추가하지 않고 씬에 직접 추가
+    // this.add(this.sprite); // 제거
+
+    // 애니메이션 생성
+    this.createAnimations(scene);
+
+    // 초기 애니메이션 설정
+    this.updateMovement();
 
     // 깊이 설정
-    this.setDepth(DEPTH.ENTITIES);
+    this.sprite.setDepth(DEPTH.ENTITIES);
 
     // 물리 바디 설정
     this.body.setSize(32, 32);
@@ -45,7 +73,7 @@ export class Player extends Entity {
 
     // 공격 관련
     this.canAttack = true;
-    this.attackCooldown = this.characterClass === 'warrior' ? 1200 : 500; // 전사: 1.2초, 다른 직업: 0.5초
+    this.attackCooldown = this.characterClass === 'warrior' ? 1200 : this.characterClass === 'fusionist' ? 1100 : 500; // 전사: 1.2초, 융합술사: 1.1초, 다른 직업: 0.5초
 
     // 콤보 시스템
     this.combo = {
@@ -72,11 +100,15 @@ export class Player extends Entity {
     // 장비 시스템 초기화
     this.equipment = new EquipmentManager(this);
     
+    // 장비 효과 시스템 초기화
+    this.equipmentEffects = new EquipmentEffects(this);
+    
     // 퀘스트 시스템 초기화
     this.questManager = new QuestManager(this);
     
     // 스킬 초기화
     this.skills = {};
+    this.retainedSkills = []; // 보유 스킬 (전직 시 저장)
     this.loadSkills();
     
     // HP 변경 콜백 설정
@@ -94,6 +126,29 @@ export class Player extends Entity {
     
     // 퀘스트 로드
     this.questManager.loadQuests();
+    
+    // 스탯 계산
+    this.calculateStats();
+  }
+  
+  /**
+   * 클래스 이름을 한국어로 반환
+   */
+  getClassName() {
+    switch (this.characterClass) {
+      case 'warrior':
+        return '전사';
+      case 'mage':
+        return '마법사';
+      case 'archer':
+        return '궁수';
+      case 'rogue':
+        return '로그';
+      case 'fusionist':
+        return '퓨전리스트';
+      default:
+        return '플레이어';
+    }
   }
   
   /**
@@ -101,75 +156,16 @@ export class Player extends Entity {
    */
   giveStarterEquipment() {
     const dataManager = DataManager.getInstance();
-    const { Equipment } = require('./Equipment.js');
+    // Equipment는 상단 import 사용, Item만 require
     const { Item } = require('./Item.js');
 
-    // 클래스별 시작 장비
-    switch (this.characterClass) {
-      case 'warrior':
-        // 무쇠 검 지급
-        const swordData = dataManager.getEquipment('sword_iron');
-        if (swordData) {
-          const sword = new Equipment(swordData);
-          this.inventory.addItem(sword);
-        }
-
-        // 가죽 갑옷 지급
-        const armorData = dataManager.getEquipment('armor_leather');
-        if (armorData) {
-          const armor = new Equipment(armorData);
-          this.inventory.addItem(armor);
-        }
-        break;
-
-      case 'mage':
-        // 견습생의 지팡이 지급
-        const mageStaffData = dataManager.getEquipment('staff_apprentice');
-        if (mageStaffData) {
-          const mageStaff = new Equipment(mageStaffData);
-          this.inventory.addItem(mageStaff);
-        }
-
-        // 천 갑옷 지급
-        const clothArmorData = dataManager.getEquipment('armor_cloth');
-        if (clothArmorData) {
-          const clothArmor = new Equipment(clothArmorData);
-          this.inventory.addItem(clothArmor);
-        }
-        break;
-
-      case 'archer':
-        // 사냥용 활 지급
-        const bowData = dataManager.getEquipment('bow_hunting');
-        if (bowData) {
-          const bow = new Equipment(bowData);
-          this.inventory.addItem(bow);
-        }
-
-        // 가죽 갑옷 지급
-        const archerArmorData = dataManager.getEquipment('armor_leather');
-        if (archerArmorData) {
-          const archerArmor = new Equipment(archerArmorData);
-          this.inventory.addItem(archerArmor);
-        }
-        break;
-
-      case 'rogue':
-        // 녹슨 단검 지급
-        const daggerData = dataManager.getEquipment('dagger_rusty');
-        if (daggerData) {
-          const dagger = new Equipment(daggerData);
-          this.inventory.addItem(dagger);
-        }
-
-        // 가죽 갑옷 지급
-        const rogueArmorData = dataManager.getEquipment('armor_leather');
-        if (rogueArmorData) {
-          const rogueArmor = new Equipment(rogueArmorData);
-          this.inventory.addItem(rogueArmor);
-        }
-        break;
-    }
+    // 모든 장비 지급 (테스트용)
+    const allEquipments = dataManager.getAllEquipments ? dataManager.getAllEquipments() : Object.values(dataManager.equipments || {});
+    const { Equipment } = require('./Equipment.js');
+    allEquipments.forEach(eqData => {
+      const eq = new Equipment(eqData);
+      this.inventory.addItem(eq);
+    });
 
     // 공통 아이템 지급 (테스트용)
     const stoneData = dataManager.getItem('enhancement_stone_basic');
@@ -195,27 +191,7 @@ export class Player extends Entity {
     }
 
     // 테스트용 골드 지급
-    this.gold = 100000;
-  }
-  
-  /**
-   * 클래스 이름을 한국어로 반환
-   */
-  getClassName() {
-    switch (this.characterClass) {
-      case 'warrior':
-        return '전사';
-      case 'mage':
-        return '마법사';
-      case 'archer':
-        return '궁수';
-      case 'rogue':
-        return '로그';
-      case 'fusionist':
-        return '퓨전리스트';
-      default:
-        return '플레이어';
-    }
+    this.gold = 100000000000;
   }
   
   /**
@@ -223,6 +199,7 @@ export class Player extends Entity {
    */
   loadSkills() {
     const dataManager = DataManager.getInstance();
+    console.log('[Player] loadSkills 시작, dataManager.isLoaded:', dataManager.isLoaded);
     
     // 클래스별 스킬 로드
     let skillIds = [];
@@ -239,18 +216,22 @@ export class Player extends Entity {
       case 'rogue':
         skillIds = ['rogue_skill_1', 'rogue_skill_2', 'rogue_skill_3', 'rogue_skill_ultimate'];
         break;
+      case 'fusionist':
+        // fusionist는 전직 시 바로 모든 융합 스킬 등록
+        skillIds = ['fusionist_base_1', 'fusionist_barrier', 'fusionist_wave', 'fusionist_ultimate'];
+        break;
       default:
         skillIds = ['warrior_skill_1', 'warrior_skill_2', 'warrior_skill_3', 'warrior_skill_ultimate'];
         break;
     }
     
     // 스킬 데이터 저장 (잠금 해제 확인용)
-    this.skillData = {
-      '1': dataManager.getSkill(skillIds[0]),
-      '2': dataManager.getSkill(skillIds[1]),
-      '3': dataManager.getSkill(skillIds[2]),
-      'R': dataManager.getSkill(skillIds[3])
-    };
+    this.skillData = {};
+    skillIds.forEach((skillId, index) => {
+      const slotKey = index === 0 ? '1' : index === 1 ? '2' : index === 2 ? '3' : 'R';
+      this.skillData[slotKey] = dataManager.getSkill(skillId);
+      console.log(`[Player] 스킬 데이터 로드: ${skillId} ->`, this.skillData[slotKey]);
+    });
     
     // 현재 레벨로 사용 가능한 스킬만 로드
     this.updateAvailableSkills();
@@ -272,8 +253,8 @@ export class Player extends Entity {
       case 'archer':
         skillModule = require('./skills/ArcherSkills.js');
         break;
-      case 'rogue':
-        skillModule = require('./skills/RogueSkills.js');
+      case 'fusionist':
+        skillModule = require('./skills/FusionistSkills.js');
         break;
       default:
         skillModule = require('./skills/WarriorSkills.js');
@@ -285,28 +266,73 @@ export class Player extends Entity {
    * 레벨에 따라 사용 가능한 스킬 업데이트
    */
   updateAvailableSkills() {
-    // 스킬 1 (Lv 10)
-    if (this.stats.level >= 10 && this.skillData['1'] && !this.skills['1']) {
-      this.skills['1'] = this.createSkillInstance(this.skillData['1']);
-      console.log('✨ 스킬 해금:', this.skillData['1'].name);
-    }
-    
-    // 스킬 2 (Lv 15)
-    if (this.stats.level >= 15 && this.skillData['2'] && !this.skills['2']) {
-      this.skills['2'] = this.createSkillInstance(this.skillData['2']);
-      console.log('✨ 스킬 해금:', this.skillData['2'].name);
-    }
-    
-    // 스킬 3 (Lv 20)
-    if (this.stats.level >= 20 && this.skillData['3'] && !this.skills['3']) {
-      this.skills['3'] = this.createSkillInstance(this.skillData['3']);
-      console.log('✨ 스킬 해금:', this.skillData['3'].name);
-    }
-    
-    // 궁극기 (Lv 30)
-    if (this.stats.level >= 30 && this.skillData['R'] && !this.skills['R']) {
-      this.skills['R'] = this.createSkillInstance(this.skillData['R']);
-      console.log('✨ 스킬 해금:', this.skillData['R'].name);
+    // 기본 스킬 슬롯 설정 (클래스별)
+    const defaultSlots = {
+      'warrior': { '1': 'warrior_skill_1', '2': 'warrior_skill_2', '3': 'warrior_skill_3', 'R': 'warrior_skill_ultimate' },
+      'mage': { '1': 'mage_skill_1', '2': 'mage_skill_2', '3': 'mage_skill_3', 'R': 'mage_skill_ultimate' },
+      'archer': { '1': 'archer_skill_1', '2': 'archer_skill_2', '3': 'archer_skill_3', 'R': 'archer_skill_ultimate' },
+      'rogue': { '1': 'rogue_skill_1', '2': 'rogue_skill_2', '3': 'rogue_skill_3', 'R': 'rogue_skill_ultimate' },
+      'fusionist': { '1': 'fusionist_base_1', '2': 'fusionist_barrier', '3': 'fusionist_wave', 'R': 'fusionist_ultimate' }
+    };
+
+    const slots = defaultSlots[this.characterClass] || defaultSlots['warrior'];
+
+    // 각 슬롯에 대해 스킬 확인
+    if (this.characterClass === 'fusionist') {
+      console.log('[Player] Fusionist 스킬 로드 시작, 현재 레벨:', this.stats.level);
+      // fusionist는 레벨 기반 해금 (전직 후 바로 사용 가능)
+      // 스킬 1 (Lv 10, 전직 후 사용 가능)
+      if (this.skillData['1'] && !this.skills['1']) {
+        console.log('[Player] Fusionist 스킬 1 생성 시도:', this.skillData['1']);
+        this.skills['1'] = this.createSkillInstance(this.skillData['1']);
+        console.log('[Player] Fusionist 스킬 1 생성 완료:', this.skills['1']);
+      }
+      
+      // 스킬 2 (Lv 15)
+      if (this.stats.level >= 15 && this.skillData['2'] && !this.skills['2']) {
+        console.log('[Player] Fusionist 스킬 2 생성 시도:', this.skillData['2']);
+        this.skills['2'] = this.createSkillInstance(this.skillData['2']);
+        console.log('[Player] Fusionist 스킬 2 생성 완료:', this.skills['2']);
+      }
+      
+      // 스킬 3 (Lv 20)
+      if (this.stats.level >= 20 && this.skillData['3'] && !this.skills['3']) {
+        console.log('[Player] Fusionist 스킬 3 생성 시도:', this.skillData['3']);
+        this.skills['3'] = this.createSkillInstance(this.skillData['3']);
+        console.log('[Player] Fusionist 스킬 3 생성 완료:', this.skills['3']);
+      }
+      
+      // 궁극기 (Lv 30)
+      if (this.stats.level >= 30 && this.skillData['R'] && !this.skills['R']) {
+        console.log('[Player] Fusionist 스킬 R 생성 시도:', this.skillData['R']);
+        this.skills['R'] = this.createSkillInstance(this.skillData['R']);
+        console.log('[Player] Fusionist 스킬 R 생성 완료:', this.skills['R']);
+      }
+    } else {
+      // 다른 클래스들은 레벨 기반 해금
+      // 스킬 1 (Lv 10)
+      if (this.stats.level >= 10 && this.skillData['1'] && !this.skills['1']) {
+        this.skills['1'] = this.createSkillInstance(this.skillData['1']);
+        console.log('✨ 스킬 해금:', this.skillData['1'].name);
+      }
+      
+      // 스킬 2 (Lv 15)
+      if (this.stats.level >= 15 && this.skillData['2'] && !this.skills['2']) {
+        this.skills['2'] = this.createSkillInstance(this.skillData['2']);
+        console.log('✨ 스킬 해금:', this.skillData['2'].name);
+      }
+      
+      // 스킬 3 (Lv 20)
+      if (this.stats.level >= 20 && this.skillData['3'] && !this.skills['3']) {
+        this.skills['3'] = this.createSkillInstance(this.skillData['3']);
+        console.log('✨ 스킬 해금:', this.skillData['3'].name);
+      }
+      
+      // 궁극기 (Lv 30)
+      if (this.stats.level >= 30 && this.skillData['R'] && !this.skills['R']) {
+        this.skills['R'] = this.createSkillInstance(this.skillData['R']);
+        console.log('✨ 스킬 해금:', this.skillData['R'].name);
+      }
     }
   }
   
@@ -315,6 +341,58 @@ export class Player extends Entity {
    */
   createSkillInstance(skillData) {
     return createSkill(skillData, this.characterClass);
+  }
+
+  /**
+   * 스킬 슬롯 변경
+   * @param {string|number} slotKey - 슬롯 키 ('1', '2', '3', 'R')
+   * @param {Object} newSkillData - 새로운 스킬 데이터
+   * @returns {boolean} 변경 성공 여부
+   */
+  changeSkillSlot(slotKey, newSkillData) {
+    if (!newSkillData) {
+      console.log(`스킬 슬롯 ${slotKey}을(를) 비웁니다.`);
+      this.skills[slotKey] = null;
+      return true;
+    }
+
+    // 스킬 호환성 체크
+    if (newSkillData.id.startsWith('fusionist_') && this.characterClass !== 'fusionist') {
+      console.error('이 스킬은 융합술사만 사용할 수 있습니다.');
+      return false;
+    }
+    // system 타입 스킬은 fusionist만 사용 가능
+    if (newSkillData.type === 'system' && this.characterClass !== 'fusionist') {
+      console.error('이 스킬은 융합술사만 사용할 수 있습니다.');
+      return false;
+    }
+
+    // 스킬 데이터 검증
+    if (!newSkillData.id || !newSkillData.name) {
+      console.error('유효하지 않은 스킬 데이터:', newSkillData);
+      return false;
+    }
+
+    // 스킬 인스턴스 생성
+    const skillInstance = this.createSkillInstance(newSkillData);
+    if (!skillInstance) {
+      console.error('스킬 인스턴스 생성 실패:', newSkillData);
+      return false;
+    }
+
+    // 기존 스킬 제거
+    if (this.skills[slotKey]) {
+      console.log(`기존 스킬 제거: ${this.skills[slotKey].name}`);
+    }
+
+    // 새로운 스킬 설정
+    this.skills[slotKey] = skillInstance;
+    console.log(`스킬 슬롯 ${slotKey}에 ${newSkillData.name} 설정됨`);
+
+    // UI 업데이트 이벤트 발생
+    this.scene.events.emit('player:skill_changed', slotKey, skillInstance);
+
+    return true;
   }
 
   /**
@@ -329,18 +407,44 @@ export class Player extends Entity {
       right: Phaser.Input.Keyboard.KeyCodes.D
     });
 
-    // 마우스 클릭 - 공격
+    // 방향키 이벤트
+    this.cursors.up.on('down', () => { this.movingKeys.up = true; });
+    this.cursors.up.on('up', () => { this.movingKeys.up = false; });
+    this.cursors.down.on('down', () => { this.movingKeys.down = true; });
+    this.cursors.down.on('up', () => { this.movingKeys.down = false; });
+    this.cursors.left.on('down', () => { this.movingKeys.left = true; });
+    this.cursors.left.on('up', () => { this.movingKeys.left = false; });
+    this.cursors.right.on('down', () => { this.movingKeys.right = true; });
+    this.cursors.right.on('up', () => { this.movingKeys.right = false; });
+
+    // WASD 이벤트
+    this.wasd.up.on('down', () => { this.movingKeys.up = true; });
+    this.wasd.up.on('up', () => { this.movingKeys.up = false; });
+    this.wasd.down.on('down', () => { this.movingKeys.down = true; });
+    this.wasd.down.on('up', () => { this.movingKeys.down = false; });
+    this.wasd.left.on('down', () => { this.movingKeys.left = true; });
+    this.wasd.left.on('up', () => { this.movingKeys.left = false; });
+    this.wasd.right.on('down', () => { this.movingKeys.right = true; });
+    this.wasd.right.on('up', () => { this.movingKeys.right = false; });
+
+    // 마우스 좌클릭만 attack1 애니메이션 실행
     this.scene.input.on('pointerdown', (pointer) => {
       if (pointer.leftButtonDown()) {
-        this.attack(pointer.worldX, pointer.worldY);
+        this.attack(pointer.worldX, pointer.worldY); // attack1만 실행
       }
+      // attack2 등은 미사용 (우클릭 등 무시)
     });
 
     // 스킬 키
     this.scene.input.keyboard.on('keydown-ONE', () => this.useSkill('1'));
     this.scene.input.keyboard.on('keydown-TWO', () => this.useSkill('2'));
     this.scene.input.keyboard.on('keydown-THREE', () => this.useSkill('3'));
-    this.scene.input.keyboard.on('keydown-R', () => this.useSkill('R'));
+    // R 키는 융합술사일 때는 GameScene에서 처리하므로 여기서는 다른 직업만 처리
+    this.scene.input.keyboard.on('keydown-R', () => {
+      if (this.characterClass !== 'fusionist') {
+        this.useSkill('R');
+      }
+    });
 
     // 퀵슬롯
     this.scene.input.keyboard.on('keydown-Z', () => this.useQuickSlot(1));
@@ -357,8 +461,19 @@ export class Player extends Entity {
   update(time, delta) {
     if (this.isDead) return;
 
+    // 스프라이트 위치 동기화 (Container 위치에 맞춤)
+    this.sprite.setPosition(this.x, this.y);
+    this.sprite.setScale(this.scaleX, this.scaleY);
+    this.sprite.setRotation(this.rotation);
+
     // 상태 이상 업데이트 (Entity 메서드 호출)
     this.updateEntity(time, delta);
+
+    // 장비 효과 지속 적용
+    this.equipmentEffects.applyPassiveEffects(delta);
+
+    // 기본 HP/MP 자동 재생
+    this.applyBasicRegeneration(delta);
 
     // 콤보 타이머 업데이트
     this.updateCombo(delta);
@@ -385,32 +500,57 @@ export class Player extends Entity {
     // 이동 입력
     if (this.cursors.left.isDown || this.wasd.left.isDown) {
       this.body.setVelocityX(-speed);
+      this.lastMoveDirection = 'left';
     } else if (this.cursors.right.isDown || this.wasd.right.isDown) {
       this.body.setVelocityX(speed);
+      this.lastMoveDirection = 'right';
     }
 
     if (this.cursors.up.isDown || this.wasd.up.isDown) {
       this.body.setVelocityY(-speed);
+      this.lastMoveDirection = 'up';
     } else if (this.cursors.down.isDown || this.wasd.down.isDown) {
       this.body.setVelocityY(speed);
+      this.lastMoveDirection = 'down';
     }
 
     // 대각선 이동 시 속도 정규화
     if (this.body.velocity.x !== 0 && this.body.velocity.y !== 0) {
       this.body.velocity.normalize().scale(speed);
     }
+
+    // 애니메이션 업데이트
+    this.updateMovement();
   }
 
   /**
    * 기본 공격
    */
   attack(targetX, targetY) {
-    if (!this.canAttack || this.isDead || !this.canAct()) return;
+    if (!this.canAttack || this.isDead || !this.canAct()) {
+      return;
+    }
 
     this.canAttack = false;
 
     // 공격 방향 계산
     const angle = Phaser.Math.Angle.Between(this.x, this.y, targetX, targetY);
+    const direction = this.getDirectionFromAngle(angle);
+
+    // 공격 애니메이션 재생 전 텍스처 변경
+    this.sprite.setTexture(`attack1_${direction}`);
+    const animKey = `attack1_${direction}`;
+    if (this.scene.anims.exists(animKey)) {
+      const anim = this.sprite.play(animKey);
+      this.currentAnimation = animKey;
+      anim.once('animationcomplete', () => {
+        // 애니메이션 완료 후 idle 텍스처로 돌아감
+        this.sprite.setTexture(`idle_${this.lastMoveDirection}`);
+        this.updateMovement();
+      });
+    } else {
+      console.error(`[Player] Animation ${animKey} does not exist!`);
+    }
     
     // 공격 이펙트 (임시 - 투사체)
     this.createProjectile(angle);
@@ -519,10 +659,27 @@ export class Player extends Entity {
         if (angleDiff <= attackAngle / 2) { // 공격 각도 내에 있으면
           // 피해 적용
           const comboMultiplier = this.getComboMultiplier ? this.getComboMultiplier() : 1.0;
-          const finalDamage = Math.floor(this.stats.attack * comboMultiplier);
+          let finalDamage = Math.floor(this.stats.attack * comboMultiplier);
+
+          // 백어택 확인 (몬스터의 뒤쪽에서 공격)
+          const monsterAngle = Phaser.Math.Angle.Between(this.x, this.y, monster.x, monster.y);
+          const backAttackAngle = Math.PI / 4; // 45도
+          let angleToMonster = Math.abs(angle - monsterAngle);
+          angleToMonster = Math.min(angleToMonster, Math.PI * 2 - angleToMonster);
+          const isBackAttack = angleToMonster > Math.PI - backAttackAngle;
+
+          // 장비 효과 적용
+          const effectResult = this.equipmentEffects.applyAttackEffects(monster, finalDamage, false, isBackAttack);
+          finalDamage = effectResult.damage;
 
           const result = monster.takeDamage(finalDamage, this);
           this.scene.showDamageText(monster.x, monster.y - 30, result.damage, result.isCrit, result.isEvaded);
+
+          // 효과 적용 표시
+          if (effectResult.appliedEffects.length > 0) {
+            const effectText = effectResult.appliedEffects.join(', ');
+            this.scene.showDamageText(monster.x, monster.y - 50, effectText, false, false, '#FFD700');
+          }
 
           // 콤보 증가
           if (!result.isEvaded && this.increaseCombo) {
@@ -688,10 +845,13 @@ export class Player extends Entity {
    * 스킬 사용
    */
   useSkill(skillSlot) {
+    console.log(`[Player] useSkill called with slot: ${skillSlot}`);
     const skill = this.skills[skillSlot];
+    console.log(`[Player] skill in slot ${skillSlot}:`, skill);
     
     if (!skill) {
       const skillData = this.skillData[skillSlot];
+      console.log(`[Player] skillData in slot ${skillSlot}:`, skillData);
       if (skillData && skillData.unlockLevel) {
         console.log(`❌ 스킬 잠김: Lv ${skillData.unlockLevel}에 해금됩니다.`);
       } else {
@@ -700,7 +860,15 @@ export class Player extends Entity {
       return false;
     }
     
-    return skill.use(this);
+    // 마우스 위치를 타겟으로 사용 - GameScene의 카메라 사용
+    const gameScene = this.scene.scene.get('GameScene') || this.scene;
+    const pointer = gameScene.input.activePointer;
+    const worldPoint = gameScene.cameras.main.getWorldPoint(pointer.x, pointer.y);
+    
+    console.log(`[Player] Using skill ${skill.name} at position:`, worldPoint);
+    const result = skill.use(this, { x: worldPoint.x, y: worldPoint.y });
+    console.log(`[Player] Skill use result:`, result);
+    return result;
   }
 
   /**
@@ -824,6 +992,30 @@ export class Player extends Entity {
   onDeath() {
     console.log('플레이어 사망!');
     
+    // 불사조의 반지 부활 효과 체크
+    if (this.equipmentEffects && this.equipmentEffects.tryReviveOnDeath()) {
+      console.log('플레이어 부활!');
+      
+      // 부활 애니메이션
+      this.scene.tweens.add({
+        targets: this,
+        alpha: 1,
+        angle: 0,
+        duration: 1000,
+        onComplete: () => {
+          console.log('부활 완료');
+        }
+      });
+      
+      // 상태 복구
+      this.isDead = false;
+      this.alpha = 1;
+      this.angle = 0;
+      
+      return; // 부활했으므로 게임 오버 처리하지 않음
+    }
+    
+    // 부활 효과가 없으면 게임 오버
     // 사망 애니메이션
     this.scene.tweens.add({
       targets: this,
@@ -1027,4 +1219,432 @@ export class Player extends Entity {
     console.log('[Player] 퓨전리스트로 전직했습니다!');
     return true;
   }
+
+  /**
+   * 이동 및 애니메이션 업데이트 (키 입력 기반)
+   */
+  updateMovement() {
+    if (!this.sprite || !this.sprite.anims) return;
+
+    // 실제 이동 중인지 확인 (velocity가 0이 아니거나 키 입력이 있는 경우)
+    const isMoving = (this.body.velocity.x !== 0 || this.body.velocity.y !== 0) || 
+                     this.movingKeys.up || this.movingKeys.down || this.movingKeys.left || this.movingKeys.right;
+
+    let direction;
+    if (isMoving) {
+      // velocity가 있는 경우 velocity 방향 사용, 아니면 키 입력 방향 사용
+      if (this.body.velocity.x !== 0 || this.body.velocity.y !== 0) {
+        // velocity 방향으로 direction 결정
+        if (Math.abs(this.body.velocity.x) > Math.abs(this.body.velocity.y)) {
+          // 수평 이동이 더 큼
+          direction = this.body.velocity.x > 0 ? 'right' : 'left';
+        } else {
+          // 수직 이동이 더 큼
+          direction = this.body.velocity.y > 0 ? 'down' : 'up';
+        }
+      } else {
+        // 키 입력 방향 사용 (죽은 상태 등)
+        if (this.movingKeys.up) {
+          direction = 'up';
+        } else if (this.movingKeys.down) {
+          direction = 'down';
+        } else if (this.movingKeys.left) {
+          direction = 'left';
+        } else if (this.movingKeys.right) {
+          direction = 'right';
+        } else {
+          direction = this.lastMoveDirection || 'down';
+        }
+      }
+      this.lastMoveDirection = direction;
+
+      // 애니메이션 재생
+      const animKey = `run_${direction}`;
+      if (this.currentAnimation !== animKey && this.scene.anims.exists(animKey)) {
+        this.sprite.play(animKey);
+        this.currentAnimation = animKey;
+      }
+    } else {
+      // 멈췄을 때 마지막 이동 방향
+      direction = this.lastMoveDirection || 'down';
+      // 애니메이션 재생
+      const animKey = `idle_${direction}`;
+      if (this.currentAnimation !== animKey && this.scene.anims.exists(animKey)) {
+        this.sprite.play(animKey);
+        this.currentAnimation = animKey;
+      }
+    }
+  }
+
+  /**
+   * 각도에서 방향 계산
+   */
+  getDirectionFromAngle(angle) {
+    const degrees = Phaser.Math.RadToDeg(angle);
+    if (degrees >= -45 && degrees < 45) return 'right';
+    if (degrees >= 45 && degrees < 135) return 'down';
+    if (degrees >= 135 || degrees < -135) return 'left';
+    return 'up';
+  }
+
+  /**
+   * 애니메이션 생성 (각 동작별 별도 이미지 파일 사용)
+   */
+  createAnimations(scene) {
+    // Idle 애니메이션 (각 방향별)
+    scene.anims.create({
+      key: 'idle_down',
+      frames: [
+        { key: 'idle_down', frame: 0 },
+        { key: 'idle_down', frame: 1 },
+        { key: 'idle_down', frame: 2 },
+        { key: 'idle_down', frame: 3 },
+        { key: 'idle_down', frame: 4 },
+        { key: 'idle_down', frame: 5 },
+        { key: 'idle_down', frame: 6 },
+        { key: 'idle_down', frame: 7 }
+      ],
+      frameRate: 4,
+      repeat: -1
+    });
+    scene.anims.create({
+      key: 'idle_left',
+      frames: [
+        { key: 'idle_left', frame: 0 },
+        { key: 'idle_left', frame: 1 },
+        { key: 'idle_left', frame: 2 },
+        { key: 'idle_left', frame: 3 },
+        { key: 'idle_left', frame: 4 },
+        { key: 'idle_left', frame: 5 },
+        { key: 'idle_left', frame: 6 },
+        { key: 'idle_left', frame: 7 }
+      ],
+      frameRate: 4,
+      repeat: -1
+    });
+    scene.anims.create({
+      key: 'idle_right',
+      frames: [
+        { key: 'idle_right', frame: 0 },
+        { key: 'idle_right', frame: 1 },
+        { key: 'idle_right', frame: 2 },
+        { key: 'idle_right', frame: 3 },
+        { key: 'idle_right', frame: 4 },
+        { key: 'idle_right', frame: 5 },
+        { key: 'idle_right', frame: 6 },
+        { key: 'idle_right', frame: 7 }
+      ],
+      frameRate: 4,
+      repeat: -1
+    });
+    scene.anims.create({
+      key: 'idle_up',
+      frames: [
+        { key: 'idle_up', frame: 0 },
+        { key: 'idle_up', frame: 1 },
+        { key: 'idle_up', frame: 2 },
+        { key: 'idle_up', frame: 3 },
+        { key: 'idle_up', frame: 4 },
+        { key: 'idle_up', frame: 5 },
+        { key: 'idle_up', frame: 6 },
+        { key: 'idle_up', frame: 7 }
+      ],
+      frameRate: 4,
+      repeat: -1
+    });
+
+    // Run 애니메이션 (각 방향별)
+    scene.anims.create({
+      key: 'run_down',
+      frames: [
+        { key: 'run_down', frame: 0 },
+        { key: 'run_down', frame: 1 },
+        { key: 'run_down', frame: 0 },
+        { key: 'run_down', frame: 2 }
+      ],
+      frameRate: 8,
+      repeat: -1
+    });
+    scene.anims.create({
+      key: 'run_left',
+      frames: [
+        { key: 'run_left', frame: 0 },
+        { key: 'run_left', frame: 1 },
+        { key: 'run_left', frame: 0 },
+        { key: 'run_left', frame: 2 }
+      ],
+      frameRate: 8,
+      repeat: -1
+    });
+    scene.anims.create({
+      key: 'run_right',
+      frames: [
+        { key: 'run_right', frame: 0 },
+        { key: 'run_right', frame: 1 },
+        { key: 'run_right', frame: 0 },
+        { key: 'run_right', frame: 2 }
+      ],
+      frameRate: 8,
+      repeat: -1
+    });
+    scene.anims.create({
+      key: 'run_up',
+      frames: [
+        { key: 'run_up', frame: 0 },
+        { key: 'run_up', frame: 1 },
+        { key: 'run_up', frame: 0 },
+        { key: 'run_up', frame: 2 }
+      ],
+      frameRate: 8,
+      repeat: -1
+    });
+
+    // Attack1 애니메이션 (각 방향별)
+    scene.anims.create({
+      key: 'attack1_down',
+      frames: [
+        { key: 'attack1_down', frame: 0 },
+        { key: 'attack1_down', frame: 1 },
+        { key: 'attack1_down', frame: 2 },
+        { key: 'attack1_down', frame: 3 },
+        { key: 'attack1_down', frame: 4 },
+        { key: 'attack1_down', frame: 5 },
+        { key: 'attack1_down', frame: 6 },
+        { key: 'attack1_down', frame: 7 }
+      ],
+      frameRate: 12,
+      repeat: 0
+    });
+    scene.anims.create({
+      key: 'attack1_left',
+      frames: [
+        { key: 'attack1_left', frame: 0 },
+        { key: 'attack1_left', frame: 1 },
+        { key: 'attack1_left', frame: 2 },
+        { key: 'attack1_left', frame: 3 },
+        { key: 'attack1_left', frame: 4 },
+        { key: 'attack1_left', frame: 5 },
+        { key: 'attack1_left', frame: 6 },
+        { key: 'attack1_left', frame: 7 }
+      ],
+      frameRate: 12,
+      repeat: 0
+    });
+    scene.anims.create({
+      key: 'attack1_right',
+      frames: [
+        { key: 'attack1_right', frame: 0 },
+        { key: 'attack1_right', frame: 1 },
+        { key: 'attack1_right', frame: 2 },
+        { key: 'attack1_right', frame: 3 },
+        { key: 'attack1_right', frame: 4 },
+        { key: 'attack1_right', frame: 5 },
+        { key: 'attack1_right', frame: 6 },
+        { key: 'attack1_right', frame: 7 }
+      ],
+      frameRate: 12,
+      repeat: 0
+    });
+    scene.anims.create({
+      key: 'attack1_up',
+      frames: [
+        { key: 'attack1_up', frame: 0 },
+        { key: 'attack1_up', frame: 1 },
+        { key: 'attack1_up', frame: 2 },
+        { key: 'attack1_up', frame: 3 },
+        { key: 'attack1_up', frame: 4 },
+        { key: 'attack1_up', frame: 5 },
+        { key: 'attack1_up', frame: 6 },
+        { key: 'attack1_up', frame: 7 }
+      ],
+      frameRate: 12,
+      repeat: 0
+    });
+
+    // Attack2 애니메이션 (비활성화: 나중에 구현 예정)
+    // scene.anims.create({
+    //   key: 'attack2_down',
+    //   frames: [
+    //     { key: 'attack2_down', frame: 0 },
+    //     { key: 'attack2_down', frame: 1 },
+    //     { key: 'attack2_down', frame: 2 },
+    //     { key: 'attack2_down', frame: 3 },
+    //     { key: 'attack2_down', frame: 4 },
+    //     { key: 'attack2_down', frame: 5 },
+    //     { key: 'attack2_down', frame: 6 },
+    //     { key: 'attack2_down', frame: 7 }
+    //   ],
+    //   frameRate: 12,
+    //   repeat: 0
+    // });
+    // scene.anims.create({
+    //   key: 'attack2_left',
+    //   frames: [
+    //     { key: 'attack2_left', frame: 0 },
+    //     { key: 'attack2_left', frame: 1 },
+    //     { key: 'attack2_left', frame: 2 },
+    //     { key: 'attack2_left', frame: 3 },
+    //     { key: 'attack2_left', frame: 4 },
+    //     { key: 'attack2_left', frame: 5 },
+    //     { key: 'attack2_left', frame: 6 },
+    //     { key: 'attack2_left', frame: 7 }
+    //   ],
+    //   frameRate: 12,
+    //   repeat: 0
+    // });
+    // scene.anims.create({
+    //   key: 'attack2_right',
+    //   frames: [
+    //     { key: 'attack2_right', frame: 0 },
+    //     { key: 'attack2_right', frame: 1 },
+    //     { key: 'attack2_right', frame: 2 },
+    //     { key: 'attack2_right', frame: 3 },
+    //     { key: 'attack2_right', frame: 4 },
+    //     { key: 'attack2_right', frame: 5 },
+    //     { key: 'attack2_right', frame: 6 },
+    //     { key: 'attack2_right', frame: 7 }
+    //   ],
+    //   frameRate: 12,
+    //   repeat: 0
+    // });
+    // scene.anims.create({
+    //   key: 'attack2_up',
+    //   frames: [
+    //     { key: 'attack2_up', frame: 0 },
+    //     { key: 'attack2_up', frame: 1 },
+    //     { key: 'attack2_up', frame: 2 },
+    //     { key: 'attack2_up', frame: 3 },
+    //     { key: 'attack2_up', frame: 4 },
+    //     { key: 'attack2_up', frame: 5 },
+    //     { key: 'attack2_up', frame: 6 },
+    //     { key: 'attack2_up', frame: 7 }
+    //   ],
+    //   frameRate: 12,
+    //   repeat: 0
+    // });
+  }
+
+  /**
+   * 기본 HP/MP 자동 재생 적용
+   * @param {number} delta - 프레임 경과 시간 (ms)
+   */
+  applyBasicRegeneration(delta) {
+    // 초당 1 HP, 2 MP 기본 재생 (레벨에 따라 증가 가능)
+    const hpRegenRate = 1; // 초당 1 HP
+    const mpRegenRate = 2; // 초당 2 MP
+
+    // HP 재생
+    const hpRegen = Math.floor(hpRegenRate * (delta / 1000));
+    if (hpRegen > 0 && this.stats.hp < this.stats.maxHp) {
+      this.stats.hp = Math.min(this.stats.maxHp, this.stats.hp + hpRegen);
+      // UI 즉시 업데이트
+      if (this.scene.uiScene) {
+        this.scene.uiScene.updateHP(this.stats.hp, this.stats.maxHp);
+      }
+    }
+
+    // MP 재생
+    const mpRegen = Math.floor(mpRegenRate * (delta / 1000));
+    if (mpRegen > 0 && this.stats.mp < this.stats.maxMp) {
+      this.stats.mp = Math.min(this.stats.maxMp, this.stats.mp + mpRegen);
+      // UI 즉시 업데이트
+      if (this.scene.uiScene) {
+        this.scene.uiScene.updateMP(this.stats.mp, this.stats.maxMp);
+      }
+    }
+  }
+
+  /**
+   * 클래스 변경 (전직)
+   */
+  changeClass(newClass) {
+    // 기존 스킬을 보유 스킬에 저장 (호환되는 스킬만)
+    const currentSkillIds = Object.keys(this.skills);
+    currentSkillIds.forEach(skillKey => {
+      const skill = this.skills[skillKey];
+      if (skill && skill.id && !this.retainedSkills.includes(skill.id)) {
+        // 호환성 체크: fusionist 스킬은 fusionist만
+        if (skill.id.startsWith('fusionist_') && newClass !== 'fusionist') {
+          return; // 호환되지 않으면 저장하지 않음
+        }
+        this.retainedSkills.push(skill.id);
+      }
+    });
+
+    // retainedSkills에서 호환되지 않는 스킬 제거
+    this.retainedSkills = this.retainedSkills.filter(skillId => {
+      if (skillId.startsWith('fusionist_') && newClass !== 'fusionist') {
+        return false;
+      }
+      return true;
+    });
+
+    // 스킬 초기화
+    this.skills = {};
+
+    // 클래스 변경
+    this.characterClass = newClass;
+
+    // 스킬 재로딩
+    this.loadSkills();
+
+    // retainedSkills의 스킬들을 skills에 추가 (전직 시 보유 스킬 유지)
+    if (this.retainedSkills && this.retainedSkills.length > 0) {
+      const dataManager = DataManager.getInstance();
+      this.retainedSkills.forEach(skillId => {
+        const skillData = dataManager.getSkill(skillId);
+        if (skillData) {
+          // 호환성 체크 (fusionist 스킬은 fusionist만)
+          if (skillData.id.startsWith('fusionist_') && newClass !== 'fusionist') {
+            return;
+          }
+          if (skillData.type === 'system' && newClass !== 'fusionist') {
+            return;
+          }
+          
+          // 빈 슬롯 찾기
+          let slotKey = 'retained_1';
+          let counter = 1;
+          while (this.skills[slotKey]) {
+            counter++;
+            slotKey = `retained_${counter}`;
+          }
+          
+          this.skills[slotKey] = this.createSkillInstance(skillData);
+          console.log(`[Player] 전직 시 보유 스킬 추가: ${slotKey} - ${skillData.name}`);
+        }
+      });
+    }
+
+    // UI 업데이트를 위한 이벤트 발생
+    if (this.scene) {
+      this.scene.events.emit('player:class_changed', this.characterClass);
+    }
+  }
+
+  /**
+   * 파괴
+   */
+  destroy() {
+    if (this.sprite) {
+      this.sprite.destroy();
+    }
+    super.destroy();
+  }
+
+  /**
+   * 스탯 계산 (장비 효과 포함)
+   */
+  calculateStats() {
+    // 기본 마법 공격력 = 지능 * 2
+    this.stats.magicAttack = this.stats.int * 2;
+    
+    // 장비 효과 적용
+    if (this.equipment) {
+      const equipmentStats = this.equipment.getTotalStatBonus();
+      this.stats.magicAttack += equipmentStats.magicAttack || 0;
+    }
+  }
 }
+
+

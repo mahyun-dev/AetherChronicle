@@ -201,6 +201,14 @@ export class QuestManager {
         }
       });
     }
+    
+    // 클래스 변경
+    if (quest.rewards.classChange) {
+      this.player.changeClass(quest.rewards.classChange);
+      console.log(`[QuestManager] 클래스 변경: ${quest.rewards.classChange}`);
+      // 클래스 변경 알림
+      this.player.scene.showNotification(`축하합니다! ${quest.rewards.classChange}로 전직했습니다!`, 0xFFD700);
+    }
   }
   
   /**

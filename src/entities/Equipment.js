@@ -406,18 +406,31 @@ export class EquipmentManager {
     const oldEquipment = this.slots[slotKey];
     if (oldEquipment) {
       this.removeEquipmentStats(oldEquipment);
+      // 기존 장비 효과 제거
+      if (this.player.equipmentEffects) {
+        this.player.equipmentEffects.removeEquipmentEffects(oldEquipment);
+      }
     }
     
     // 새 장비 착용
     this.slots[slotKey] = equipment;
     this.applyEquipmentStats(equipment);
     
-    console.log(`[EquipmentManager] ${equipment.name} 착용 완료 (슬롯: ${slotKey})`);
+    // 장비 효과 적용
+    if (this.player.equipmentEffects) {
+      this.player.equipmentEffects.applyEquipmentEffects(equipment);
+    }
+    
+    // 스탯 재계산
+    if (this.player.calculateStats) {
+      this.player.calculateStats();
+    }
     
     // 이벤트 발생
     this.player.scene.events.emit('equipment:changed', slotKey, equipment);
     
     // HP/MP 변경 이벤트 발생 (UI 업데이트용)
+    console.log(`[Equipment] 장비 착용 후 HP: ${this.player.stats.hp}/${this.player.stats.maxHp}, MP: ${this.player.stats.mp}/${this.player.stats.maxMp}`);
     this.player.scene.events.emit('player:hp_changed', this.player.stats.hp, this.player.stats.maxHp);
     this.player.scene.events.emit('player:mp_changed', this.player.stats.mp, this.player.stats.maxMp);
     
@@ -465,7 +478,15 @@ export class EquipmentManager {
     this.slots[slotKey] = equipment;
     this.applyEquipmentStats(equipment);
     
-    console.log(`[EquipmentManager] ${equipment.name}을(를) ${slotKey} 슬롯에 착용`);
+    // 장비 효과 적용
+    if (this.player.equipmentEffects) {
+      this.player.equipmentEffects.applyEquipmentEffects(equipment);
+    }
+    
+    // 스탯 재계산
+    if (this.player.calculateStats) {
+      this.player.calculateStats();
+    }
     
     // 이벤트 발생
     this.player.scene.events.emit('equipment:changed', slotKey, equipment);
@@ -487,7 +508,18 @@ export class EquipmentManager {
     if (!equipment) return null;
     
     this.removeEquipmentStats(equipment);
+    
+    // 장비 효과 제거
+    if (this.player.equipmentEffects) {
+      this.player.equipmentEffects.removeEquipmentEffects(equipment);
+    }
+    
     this.slots[slotKey] = null;
+    
+    // 스탯 재계산
+    if (this.player.calculateStats) {
+      this.player.calculateStats();
+    }
     
     console.log(`[EquipmentManager] ${equipment.name} 해제 완료`);
     
@@ -495,6 +527,7 @@ export class EquipmentManager {
     this.player.scene.events.emit('equipment:changed', slotKey, null);
     
     // HP/MP 변경 이벤트 발생 (UI 업데이트용)
+    console.log(`[Equipment] 장비 해제 후 HP: ${this.player.stats.hp}/${this.player.stats.maxHp}, MP: ${this.player.stats.mp}/${this.player.stats.maxMp}`);
     this.player.scene.events.emit('player:hp_changed', this.player.stats.hp, this.player.stats.maxHp);
     this.player.scene.events.emit('player:mp_changed', this.player.stats.mp, this.player.stats.maxMp);
     
@@ -506,6 +539,8 @@ export class EquipmentManager {
    */
   applyEquipmentStats(equipment) {
     const stats = equipment.getEnhancedStats();
+    
+    console.log(`[Equipment] ${equipment.name} 착용 전 - HP: ${this.player.stats.hp}/${this.player.stats.maxHp}, MP: ${this.player.stats.mp}/${this.player.stats.maxMp}`);
     
     // 기본 스탯 적용
     this.player.stats.attack += stats.attack || 0;
@@ -536,6 +571,7 @@ export class EquipmentManager {
       this.player.body.setMaxVelocity(this.player.stats.speed + stats.moveSpeed);
     }
     
+    console.log(`[Equipment] ${equipment.name} 착용 후 - HP: ${this.player.stats.hp}/${this.player.stats.maxHp}, MP: ${this.player.stats.mp}/${this.player.stats.maxMp}`);
     console.log(`[EquipmentManager] 스탯 적용: ${equipment.name}`, stats);
   }
   
@@ -544,6 +580,8 @@ export class EquipmentManager {
    */
   removeEquipmentStats(equipment) {
     const stats = equipment.getEnhancedStats();
+    
+    console.log(`[Equipment] ${equipment.name} 해제 전 - HP: ${this.player.stats.hp}/${this.player.stats.maxHp}, MP: ${this.player.stats.mp}/${this.player.stats.maxMp}`);
     
     this.player.stats.attack -= stats.attack || 0;
     this.player.stats.magicAttack -= stats.magicAttack || 0;
@@ -573,6 +611,7 @@ export class EquipmentManager {
       this.player.body.setMaxVelocity(this.player.stats.speed);
     }
     
+    console.log(`[Equipment] ${equipment.name} 해제 후 - HP: ${this.player.stats.hp}/${this.player.stats.maxHp}, MP: ${this.player.stats.mp}/${this.player.stats.maxMp}`);
     console.log(`[EquipmentManager] 스탯 제거: ${equipment.name}`, stats);
   }
   

@@ -117,7 +117,6 @@ export class EnhancementUI {
     // 이벤트 전파 방지
     slotBg.on('pointerdown', (pointer, localX, localY, event) => {
       event.stopPropagation();
-      console.log('[EnhancementUI] 장비 슬롯 클릭됨');
       this.showItemSelector('equipment');
     });
 
@@ -192,7 +191,6 @@ export class EnhancementUI {
     // 클릭 이벤트
     slotBg.on('pointerdown', (pointer, localX, localY, event) => {
       event.stopPropagation();
-      console.log('[EnhancementUI] 강화석 슬롯 클릭됨');
       this.showItemSelector('stone');
     });
   }
@@ -251,7 +249,6 @@ export class EnhancementUI {
   }
 
   showItemSelector(type) {
-    console.log(`[EnhancementUI] showItemSelector 호출됨, type: ${type}`);
     if (this.itemSelector) {
       this.itemSelector.destroy();
     }
@@ -698,27 +695,22 @@ export class EnhancementUI {
   }
 
   handleDragDrop(item, pointer) {
-    console.log(`[EnhancementUI] handleDragDrop 호출됨, item: ${item ? item.name : 'null'}, type: ${item ? item.type : 'null'}`);
     if (!this.isOpen || !this.container) {
-      console.log('[EnhancementUI] 강화창이 닫혀있거나 컨테이너가 없음');
       return false;
     }
 
     if (!item || !pointer) {
-      console.log('[EnhancementUI] 아이템이나 포인터가 null임');
       return false;
     }
 
     // 장비 슬롯 영역 체크
     if (this.equipmentSlot && this.isPointerInSlot(pointer, this.equipmentSlot) && !item.id.startsWith('enhancement_stone')) {
-      console.log('[EnhancementUI] 장비 슬롯에 드랍됨');
       this.setSelectedEquipment(item);
       return true;
     }
 
     // 강화석 슬롯 영역 체크
     if (this.stoneSlot && this.isPointerInSlot(pointer, this.stoneSlot) && item.id.startsWith('enhancement_stone')) {
-      console.log('[EnhancementUI] 강화석 슬롯에 드랍됨');
       this.setSelectedStone(item);
       return true;
     }
@@ -729,15 +721,12 @@ export class EnhancementUI {
 
   isPointerInSlot(pointer, slot) {
     if (!slot || !slot.dropZone || !this.container) {
-      console.log('[EnhancementUI] 슬롯이나 컨테이너가 null임');
       return false;
     }
 
     // 슬롯 드롭존의 바운드를 사용하여 영역 체크
     const bounds = slot.dropZone.getBounds();
     const inBounds = bounds.contains(pointer.worldX, pointer.worldY);
-
-    console.log(`[EnhancementUI] 슬롯 체크 - 포인터: (${pointer.worldX}, ${pointer.worldY}), 바운드: (${bounds.left}, ${bounds.top}, ${bounds.right}, ${bounds.bottom}), 결과: ${inBounds}`);
 
     return inBounds;
   }

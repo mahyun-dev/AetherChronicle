@@ -1,0 +1,148 @@
+{
+  "fusionist_quest_001": {
+    "id": "fusionist_quest_001",
+    "name": "마력의 기초",
+    "description": "융합술사의 길을 걷기 위해 마력의 기초를 익혀야 합니다.\n다양한 속성의 몬스터를 처치하여 마력의 균형을 배우세요.",
+    "type": "fusionist_skill_unlock",
+    "level": 1,
+    "giver": "fusionist_master",
+    "classRestriction": "fusionist",
+    "objectives": [
+      {
+        "type": "kill",
+        "target": "slime",
+        "required": 5,
+        "current": 0,
+        "description": "슬라임 처치 (물 속성)"
+      },
+      {
+        "type": "kill",
+        "target": "wolf",
+        "required": 3,
+        "current": 0,
+        "description": "늑대 처치 (바람 속성)"
+      }
+    ],
+    "rewards": {
+      "exp": 200,
+      "gold": 100,
+      "items": [],
+      "skillUnlock": "fusionist_base_1"
+    },
+    "prerequisites": []
+  },
+  "fusionist_quest_002": {
+    "id": "fusionist_quest_002",
+    "name": "마력의 방벽",
+    "description": "마력으로 방벽을 형성하는 기술을 연습해야 합니다.\n고블린들을 처치하며 방어 마법을 시험하세요.",
+    "type": "fusionist_skill_unlock",
+    "level": 10,
+    "giver": "fusionist_master",
+    "classRestriction": "fusionist",
+    "objectives": [
+      {
+        "type": "kill",
+        "target": "goblin",
+        "required": 10,
+        "current": 0,
+        "description": "고블린 처치"
+      },
+      {
+        "type": "kill",
+        "target": "goblin_warrior",
+        "required": 5,
+        "current": 0,
+        "description": "고블린 전사 처치"
+      }
+    ],
+    "rewards": {
+      "exp": 400,
+      "gold": 200,
+      "items": [
+        {
+          "id": "potion_mp_medium",
+          "name": "중급 마나 물약",
+          "quantity": 3
+        }
+      ],
+      "skillUnlock": "fusionist_barrier"
+    },
+    "prerequisites": ["fusionist_quest_001"]
+  },
+  "fusionist_quest_003": {
+    "id": "fusionist_quest_003",
+    "name": "불안정한 힘",
+    "description": "융합술사의 핵심인 불안정한 힘을 다루는 법을 배워야 합니다.\n하피와 오우거를 처치하며 파동의 힘을 시험하세요.",
+    "type": "fusionist_skill_unlock",
+    "level": 15,
+    "giver": "fusionist_master",
+    "classRestriction": "fusionist",
+    "objectives": [
+      {
+        "type": "kill",
+        "target": "harpy",
+        "required": 8,
+        "current": 0,
+        "description": "하피 처치"
+      },
+      {
+        "type": "kill",
+        "target": "ogre",
+        "required": 3,
+        "current": 0,
+        "description": "오우거 처치"
+      }
+    ],
+    "rewards": {
+      "exp": 600,
+      "gold": 300,
+      "items": [
+        {
+          "id": "enhancement_stone_basic",
+          "name": "기본 강화석",
+          "quantity": 5
+        }
+      ],
+      "skillUnlock": "fusionist_wave"
+    },
+    "prerequisites": ["fusionist_quest_002"]
+  },
+  "fusionist_quest_004": {
+    "id": "fusionist_quest_004",
+    "name": "융합의 깨달음",
+    "description": "드디어 융합술사의 궁극기인 원소 융합을 사용할 수 있게 되었습니다.\n다양한 몬스터를 처치하며 융합의 진정한 힘을 체득하세요.",
+    "type": "fusionist_skill_unlock",
+    "level": 25,
+    "giver": "fusionist_master",
+    "classRestriction": "fusionist",
+    "objectives": [
+      {
+        "type": "kill",
+        "target": "golden_gryphon",
+        "required": 1,
+        "current": 0,
+        "description": "황금 그리폰 처치"
+      },
+      {
+        "type": "collect",
+        "target": "fusion_crystal",
+        "required": 5,
+        "current": 0,
+        "description": "융합 수정 수집"
+      }
+    ],
+    "rewards": {
+      "exp": 1000,
+      "gold": 500,
+      "items": [
+        {
+          "id": "potion_mp_large",
+          "name": "고급 마나 물약",
+          "quantity": 5
+        }
+      ],
+      "skillUnlock": "fusionist_ultimate"
+    },
+    "prerequisites": ["fusionist_quest_003"]
+  }
+}

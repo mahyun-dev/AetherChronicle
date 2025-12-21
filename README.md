@@ -6,7 +6,7 @@
 
 ## 🎮 플레이하기
 
-**GitHub Pages 데모**: [https://mahyun-dev.github.io/AetherChronicle/](https://mahyun-dev.github.io/AetherChronicle/)
+**GitHub Pages 데모**: [https://mahyun-dev.github.io/AetherChronicle/](https://mahyun-dev.github.io/AetherChronicle)
 
 ## 🛠️ 로컬 개발 환경
 

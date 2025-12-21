@@ -167,5 +167,30 @@
       ]
     },
     "prerequisites": ["quest_003"]
+  },
+  "fusionist_class_change": {
+    "id": "fusionist_class_change",
+    "name": "융합술사의 길",
+    "description": "마법사로서 충분한 경험을 쌓았습니다.\n융합술사 스승이 당신의 재능을 인정하고 융합술사로의 전직을 제안합니다.",
+    "type": "class_change",
+    "level": 20,
+    "giver": "fusionist_master",
+    "classRestriction": "mage",
+    "objectives": [
+      {
+        "type": "talk",
+        "target": "fusionist_master",
+        "required": 1,
+        "current": 0,
+        "description": "융합술사 스승과 대화"
+      }
+    ],
+    "rewards": {
+      "exp": 1000,
+      "gold": 500,
+      "items": [],
+      "classChange": "fusionist"
+    },
+    "prerequisites": []
   }
 }
