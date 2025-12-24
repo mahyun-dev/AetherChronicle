@@ -1,0 +1,32 @@
+{
+  "npcs": {
+    "quest_manager": {
+      "name": "퀘스트 관리인",
+      "type": "quest_giver",
+      "map": "town",
+      "x": 200,
+      "y": 150,
+      "dialogues": [
+        { "text": "어서 오게. 모험가여. 내가 줄 수 있는 퀘스트가 있네.", "next": 1 },
+        { "text": "슬라임을 처치하거나 늑대를 사냥해 보게나.", "next": 2 },
+        { "text": "보상을 받으려면 나에게 다시 말을 걸게.", "next": null }
+      ],
+      "quests": ["quest_001", "quest_002"],
+      "interactionRange": 50
+    },
+    "fusionist_master": {
+      "name": "융합술사 스승",
+      "type": "quest_giver",
+      "map": "town",
+      "x": 400,
+      "y": 250,
+      "dialogues": [
+        { "text": "오... 마력의 균형을 느낄 수 있군. 자네는 융합술사의 재능이 있네.", "next": 1 },
+        { "text": "융합술사는 스킬을 결합하여 새로운 힘을 창조하는 자들이야.", "next": 2 },
+        { "text": "마력의 기초부터 시작해 보자고. 몬스터들을 처치하며 균형을 배우게나.", "next": null }
+      ],
+      "quests": ["fusionist_quest_001", "fusionist_quest_002", "fusionist_quest_003", "fusionist_quest_004"],
+      "interactionRange": 50
+    }
+  }
+}
