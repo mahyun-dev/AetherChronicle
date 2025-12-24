@@ -1,0 +1,32 @@
+{
+  "name": "aether-chronicle",
+  "version": "0.1.0",
+  "description": "2D Open-world Action RPG Web Game",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "webpack serve --mode development --open",
+    "build": "webpack --mode production",
+    "dev": "webpack serve --mode development"
+  },
+  "keywords": [
+    "phaser3",
+    "game",
+    "rpg",
+    "action"
+  ],
+  "author": "mahyun-dev",
+  "license": "MIT",
+  "dependencies": {
+    "phaser": "^3.80.1"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.28.5",
+    "@babel/preset-env": "^7.28.5",
+    "babel-loader": "^10.0.0",
+    "copy-webpack-plugin": "^11.0.0",
+    "html-webpack-plugin": "^5.5.4",
+    "webpack": "^5.89.0",
+    "webpack-cli": "^5.1.4",
+    "webpack-dev-server": "^4.15.1"
+  }
+}
