@@ -459,6 +459,132 @@ const FUSION_SKILL_DATA = {
     cooldown: 2500,
     mpCost: 35,
     description: '속성이 부여된 강화 마력탄'
+  },
+  'fusion_retreat_wave': {
+    name: '후퇴 파동',
+    cooldown: 6000,
+    mpCost: 55,
+    description: '후퇴하며 불안정한 파동을 발사'
+  },
+  'fusion_poison_element': {
+    name: '독성 원소',
+    cooldown: 7000,
+    mpCost: 60,
+    description: '독과 원소가 융합된 강력한 화살'
+  },
+  'fusion_storm_flame': {
+    name: '폭풍 화염',
+    cooldown: 8000,
+    mpCost: 70,
+    description: '폭풍과 화염이 뒤섞인 파괴적인 폭발'
+  },
+  'fusion_shadow_dash': {
+    name: '그림자 돌진',
+    cooldown: 5000,
+    mpCost: 50,
+    description: '그림자 속으로 돌진하며 적을 기습'
+  },
+  'fusion_poison_ice': {
+    name: '독성 냉기',
+    cooldown: 6500,
+    mpCost: 55,
+    description: '독이 섞인 냉기 파동으로 적을 동결시키고 중독'
+  },
+  'fusion_shadow_spin': {
+    name: '그림자 회전',
+    cooldown: 5500,
+    mpCost: 60,
+    description: '그림자 속에서 회전하며 다중 베기'
+  },
+  'fusion_clone_storm': {
+    name: '분신 폭풍',
+    cooldown: 10000,
+    mpCost: 80,
+    description: '분신들이 동시에 화살 폭풍을 발사'
+  },
+  'fusion_unstable_time': {
+    name: '불안정한 시간',
+    cooldown: 12000,
+    mpCost: 90,
+    description: '시간을 불안정하게 왜곡시키는 파동'
+  },
+  'fusion_element_doom': {
+    name: '원소 파멸',
+    cooldown: 14000,
+    mpCost: 95,
+    description: '원소 융합된 파멸의 일격'
+  },
+  'fusion_dash_element': {
+    name: '속성 돌진',
+    cooldown: 4500,
+    mpCost: 45,
+    description: '속성 탄환을 실은 돌진 공격'
+  },
+  'fusion_flame_barrier': {
+    name: '화염 장벽',
+    cooldown: 10000,
+    mpCost: 75,
+    description: '화염으로 보호하는 마력 장벽'
+  },
+  'fusion_ice_unstable': {
+    name: '불안정한 냉기',
+    cooldown: 6500,
+    mpCost: 60,
+    description: '불안정한 냉기 파동'
+  },
+  'fusion_time_element': {
+    name: '시간 원소',
+    cooldown: 13000,
+    mpCost: 100,
+    description: '시간과 원소가 융합된 강력한 마법'
+  },
+  'fusion_arrow_shadow': {
+    name: '그림자 화살',
+    cooldown: 3500,
+    mpCost: 40,
+    description: '그림자 속에서 발사되는 관통 화살'
+  },
+  'fusion_retreat_clone': {
+    name: '분신 후퇴',
+    cooldown: 9000,
+    mpCost: 70,
+    description: '분신들과 함께 후퇴하며 사격'
+  },
+  'fusion_poison_shadow': {
+    name: '독성 그림자',
+    cooldown: 6000,
+    mpCost: 55,
+    description: '독이 든 그림자 밟기'
+  },
+  'fusion_storm_poison': {
+    name: '독성 폭풍',
+    cooldown: 8500,
+    mpCost: 75,
+    description: '독이 섞인 화살 폭풍'
+  },
+  'fusion_shadow_element': {
+    name: '속성 그림자',
+    cooldown: 5500,
+    mpCost: 50,
+    description: '속성 탄환을 실은 그림자 밟기'
+  },
+  'fusion_poison_element_fusion': {
+    name: '독성 원소 융합',
+    cooldown: 11000,
+    mpCost: 85,
+    description: '독과 원소가 완벽하게 융합된 공격'
+  },
+  'fusion_shadow_wave': {
+    name: '그림자 파동',
+    cooldown: 7000,
+    mpCost: 65,
+    description: '그림자 속에서 발사되는 불안정한 파동'
+  },
+  'fusion_clone_barrier': {
+    name: '분신 장벽',
+    cooldown: 9500,
+    mpCost: 80,
+    description: '분신들이 함께 방어하는 마력 장벽'
   }
 };
 
@@ -528,6 +654,48 @@ export function executeFusionSkill(skillId, caster, target, skill) {
       return executeEnhancedArrow(scene, caster, target);
     case 'fusion_element_magic':
       return executeElementMagic(scene, caster, target);
+    case 'fusion_retreat_wave':
+      return executeRetreatWave(scene, caster, target);
+    case 'fusion_poison_element':
+      return executePoisonElement(scene, caster, target);
+    case 'fusion_storm_flame':
+      return executeStormFlame(scene, caster, target);
+    case 'fusion_shadow_dash':
+      return executeShadowDash(scene, caster, target);
+    case 'fusion_poison_ice':
+      return executePoisonIce(scene, caster, target);
+    case 'fusion_shadow_spin':
+      return executeShadowSpin(scene, caster, target);
+    case 'fusion_clone_storm':
+      return executeCloneStorm(scene, caster, target);
+    case 'fusion_unstable_time':
+      return executeUnstableTime(scene, caster, target);
+    case 'fusion_element_doom':
+      return executeElementDoom(scene, caster, target);
+    case 'fusion_dash_element':
+      return executeDashElement(scene, caster, target);
+    case 'fusion_flame_barrier':
+      return executeFlameBarrier(scene, caster, target);
+    case 'fusion_ice_unstable':
+      return executeIceUnstable(scene, caster, target);
+    case 'fusion_time_element':
+      return executeTimeElement(scene, caster, target);
+    case 'fusion_arrow_shadow':
+      return executeArrowShadow(scene, caster, target);
+    case 'fusion_retreat_clone':
+      return executeRetreatClone(scene, caster, target);
+    case 'fusion_poison_shadow':
+      return executePoisonShadow(scene, caster, target);
+    case 'fusion_storm_poison':
+      return executeStormPoison(scene, caster, target);
+    case 'fusion_shadow_element':
+      return executeShadowElement(scene, caster, target);
+    case 'fusion_poison_element_fusion':
+      return executePoisonElementFusion(scene, caster, target);
+    case 'fusion_shadow_wave':
+      return executeShadowWave(scene, caster, target);
+    case 'fusion_clone_barrier':
+      return executeCloneBarrier(scene, caster, target);
     default:
       // 기본 융합 스킬 실행 (간단한 AOE)
       return executeDefaultFusion(scene, caster);
@@ -1022,6 +1190,664 @@ function executeElementMagic(scene, caster, target) {
     }
   });
   
+  return true;
+}
+
+function executeRetreatWave(scene, caster, target) {
+  // 후퇴 파동: 후퇴하며 불안정한 파동 발사
+  const retreatDistance = 100;
+  const retreatX = caster.x - Math.cos(caster.lastMoveDirection || 0) * retreatDistance;
+  const retreatY = caster.y - Math.sin(caster.lastMoveDirection || 0) * retreatDistance;
+
+  scene.tweens.add({
+    targets: caster,
+    x: retreatX,
+    y: retreatY,
+    duration: 300,
+    onComplete: () => {
+      // 파동 발사
+      const wave = scene.add.circle(caster.x, caster.y, 80, 0xFF44FF, 0.4);
+      wave.setDepth(50);
+      scene.tweens.add({
+        targets: wave,
+        scale: 2,
+        alpha: 0,
+        duration: 600,
+        onComplete: () => wave.destroy()
+      });
+
+      const monsters = scene.monsters.getChildren();
+      monsters.forEach(monster => {
+        if (Phaser.Math.Distance.Between(caster.x, caster.y, monster.x, monster.y) < 120) {
+          monster.takeDamage(80);
+        }
+      });
+    }
+  });
+
+  return true;
+}
+
+function executePoisonElement(scene, caster, target) {
+  // 독성 원소: 독 화살 + 원소
+  const pointer = scene.input.activePointer;
+  const worldPoint = scene.cameras.main.getWorldPoint(pointer.x, pointer.y);
+  const angle = Phaser.Math.Angle.Between(caster.x, caster.y, worldPoint.x, worldPoint.y);
+
+  const arrow = scene.add.circle(caster.x, caster.y, 6, 0x32CD32, 0.9);
+  arrow.setDepth(50);
+  scene.physics.add.existing(arrow);
+  arrow.body.setVelocity(Math.cos(angle) * 500, Math.sin(angle) * 500);
+
+  scene.physics.add.overlap(arrow, scene.monsters, (arr, monster) => {
+    monster.takeDamage(100);
+    // 독 효과
+    let poisonDamage = 0;
+    const poisonInterval = scene.time.addEvent({
+      delay: 1000,
+      callback: () => {
+        if (monster.active && poisonDamage < 50) {
+          monster.takeDamage(10);
+          poisonDamage += 10;
+        } else {
+          poisonInterval.remove();
+        }
+      },
+      loop: true
+    });
+    scene.time.delayedCall(5000, () => arrow.destroy());
+  });
+
+  scene.time.delayedCall(2000, () => {
+    if (arrow.active) arrow.destroy();
+  });
+
+  return true;
+}
+
+function executeStormFlame(scene, caster, target) {
+  // 폭풍 화염: 폭풍 + 화염 폭발
+  const pointer = scene.input.activePointer;
+  const worldPoint = scene.cameras.main.getWorldPoint(pointer.x, pointer.y);
+
+  for (let i = 0; i < 10; i++) {
+    const angle = (Math.PI * 2 * i) / 10;
+    const arrow = scene.add.circle(worldPoint.x, worldPoint.y, 4, 0xFF4500, 0.8);
+    arrow.setDepth(50);
+    scene.physics.add.existing(arrow);
+    arrow.body.setVelocity(Math.cos(angle) * 200, Math.sin(angle) * 200);
+
+    scene.physics.add.overlap(arrow, scene.monsters, (arr, monster) => {
+      monster.takeDamage(60);
+      arr.destroy();
+    });
+
+    scene.time.delayedCall(1000, () => {
+      if (arrow.active) arrow.destroy();
+    });
+  }
+
+  return true;
+}
+
+function executeShadowDash(scene, caster, target) {
+  // 그림자 돌진: 그림자 이동 + 돌진
+  const pointer = scene.input.activePointer;
+  const worldPoint = scene.cameras.main.getWorldPoint(pointer.x, pointer.y);
+  const angle = Phaser.Math.Angle.Between(caster.x, caster.y, worldPoint.x, worldPoint.y);
+
+  const dashDistance = 300;
+  const targetX = caster.x + Math.cos(angle) * dashDistance;
+  const targetY = caster.y + Math.sin(angle) * dashDistance;
+
+  scene.tweens.add({
+    targets: caster,
+    x: targetX,
+    y: targetY,
+    duration: 200,
+    onComplete: () => {
+      const monsters = scene.monsters.getChildren();
+      monsters.forEach(monster => {
+        if (Phaser.Math.Distance.Between(caster.x, caster.y, monster.x, monster.y) < 50) {
+          monster.takeDamage(120);
+        }
+      });
+    }
+  });
+
+  return true;
+}
+
+function executePoisonIce(scene, caster, target) {
+  // 독성 냉기: 독 + 냉기 파동
+  const wave = scene.add.circle(caster.x, caster.y, 100, 0x4444FF, 0.5);
+  wave.setDepth(50);
+  scene.tweens.add({
+    targets: wave,
+    scale: 1.5,
+    alpha: 0,
+    duration: 500,
+    onComplete: () => wave.destroy()
+  });
+
+  const monsters = scene.monsters.getChildren();
+  monsters.forEach(monster => {
+    if (Phaser.Math.Distance.Between(caster.x, caster.y, monster.x, monster.y) < 150) {
+      monster.takeDamage(70);
+      // 빙결 + 독
+      monster.frozen = true;
+      scene.time.delayedCall(2000, () => monster.frozen = false);
+      let poisonDamage = 0;
+      const poisonInterval = scene.time.addEvent({
+        delay: 1000,
+        callback: () => {
+          if (monster.active && poisonDamage < 30) {
+            monster.takeDamage(5);
+            poisonDamage += 5;
+          } else {
+            poisonInterval.remove();
+          }
+        },
+        loop: true
+      });
+    }
+  });
+
+  return true;
+}
+
+function executeShadowSpin(scene, caster, target) {
+  // 그림자 회전: 그림자 회전 베기
+  const spinEffect = scene.add.circle(caster.x, caster.y, 120, 0x000000, 0.6);
+  spinEffect.setDepth(50);
+  scene.tweens.add({
+    targets: spinEffect,
+    angle: 360,
+    alpha: 0,
+    duration: 800,
+    onComplete: () => spinEffect.destroy()
+  });
+
+  scene.time.delayedCall(200, () => {
+    const monsters = scene.monsters.getChildren();
+    monsters.forEach(monster => {
+      if (Phaser.Math.Distance.Between(caster.x, caster.y, monster.x, monster.y) < 140) {
+        monster.takeDamage(90);
+      }
+    });
+  });
+
+  return true;
+}
+
+function executeCloneStorm(scene, caster, target) {
+  // 분신 폭풍: 분신 생성 + 화살 폭풍
+  for (let i = 0; i < 3; i++) {
+    const clone = scene.add.circle(caster.x + (i - 1) * 50, caster.y, 10, 0x9B59B6, 0.7);
+    clone.setDepth(50);
+    scene.time.delayedCall(1000, () => {
+      if (clone.active) clone.destroy();
+    });
+
+    // 각 분신이 화살 발사
+    for (let j = 0; j < 5; j++) {
+      const angle = (Math.PI * 2 * j) / 5;
+      const arrow = scene.add.circle(clone.x, clone.y, 3, 0xFFD700, 0.8);
+      arrow.setDepth(50);
+      scene.physics.add.existing(arrow);
+      arrow.body.setVelocity(Math.cos(angle) * 300, Math.sin(angle) * 300);
+
+      scene.physics.add.overlap(arrow, scene.monsters, (arr, monster) => {
+        monster.takeDamage(40);
+        arr.destroy();
+      });
+
+      scene.time.delayedCall(800, () => {
+        if (arrow.active) arrow.destroy();
+      });
+    }
+  }
+
+  return true;
+}
+
+function executeUnstableTime(scene, caster, target) {
+  // 불안정한 시간: 시간 왜곡 파동
+  const wave = scene.add.circle(caster.x, caster.y, 150, 0x8A2BE2, 0.4);
+  wave.setDepth(50);
+  scene.tweens.add({
+    targets: wave,
+    scale: 2,
+    alpha: 0,
+    duration: 1000,
+    onComplete: () => wave.destroy()
+  });
+
+  const monsters = scene.monsters.getChildren();
+  monsters.forEach(monster => {
+    if (Phaser.Math.Distance.Between(caster.x, caster.y, monster.x, monster.y) < 200) {
+      monster.takeDamage(100);
+      // 시간 왜곡: 속도 감소
+      monster.speed *= 0.5;
+      scene.time.delayedCall(5000, () => monster.speed *= 2);
+    }
+  });
+
+  return true;
+}
+
+function executeElementDoom(scene, caster, target) {
+  // 원소 파멸: 원소 파멸 일격
+  const pointer = scene.input.activePointer;
+  const worldPoint = scene.cameras.main.getWorldPoint(pointer.x, pointer.y);
+  const angle = Phaser.Math.Angle.Between(caster.x, caster.y, worldPoint.x, worldPoint.y);
+
+  const beam = scene.add.rectangle(
+    caster.x + Math.cos(angle) * 250,
+    caster.y + Math.sin(angle) * 250,
+    500,
+    40,
+    0xFF6347,
+    0.8
+  );
+  beam.setRotation(angle);
+  beam.setDepth(50);
+
+  scene.tweens.add({
+    targets: beam,
+    alpha: 0,
+    duration: 600,
+    onComplete: () => beam.destroy()
+  });
+
+  const monsters = scene.monsters.getChildren();
+  monsters.forEach(monster => {
+    if (Phaser.Math.Distance.Between(caster.x, caster.y, monster.x, monster.y) < 300) {
+      monster.takeDamage(150);
+    }
+  });
+
+  return true;
+}
+
+function executeDashElement(scene, caster, target) {
+  // 속성 돌진: 속성 돌진
+  const pointer = scene.input.activePointer;
+  const worldPoint = scene.cameras.main.getWorldPoint(pointer.x, pointer.y);
+  const angle = Phaser.Math.Angle.Between(caster.x, caster.y, worldPoint.x, worldPoint.y);
+
+  const dashDistance = 350;
+  const targetX = caster.x + Math.cos(angle) * dashDistance;
+  const targetY = caster.y + Math.sin(angle) * dashDistance;
+
+  scene.tweens.add({
+    targets: caster,
+    x: targetX,
+    y: targetY,
+    duration: 300,
+    onUpdate: () => {
+      // 속성 트레일
+      const trail = scene.add.circle(caster.x, caster.y, 12, 0xFF6347, 0.7);
+      trail.setDepth(50);
+      scene.tweens.add({
+        targets: trail,
+        alpha: 0,
+        scale: 2,
+        duration: 300,
+        onComplete: () => trail.destroy()
+      });
+    },
+    onComplete: () => {
+      const monsters = scene.monsters.getChildren();
+      monsters.forEach(monster => {
+        if (Phaser.Math.Distance.Between(caster.x, caster.y, monster.x, monster.y) < 60) {
+          monster.takeDamage(110);
+        }
+      });
+    }
+  });
+
+  return true;
+}
+
+function executeFlameBarrier(scene, caster, target) {
+  // 화염 장벽: 화염 장벽
+  const barrier = scene.add.rectangle(caster.x, caster.y - 30, 180, 15, 0xFF4500, 0.9);
+  barrier.setDepth(50);
+  scene.physics.add.existing(barrier);
+  barrier.body.setImmovable(true);
+
+  // 화염 효과
+  const flameInterval = scene.time.addEvent({
+    delay: 200,
+    callback: () => {
+      const flame = scene.add.circle(barrier.x + (Math.random() - 0.5) * 180, barrier.y, 8, 0xFF0000, 0.8);
+      flame.setDepth(50);
+      scene.tweens.add({
+        targets: flame,
+        alpha: 0,
+        y: flame.y - 20,
+        duration: 400,
+        onComplete: () => flame.destroy()
+      });
+    },
+    loop: true
+  });
+
+  scene.time.delayedCall(6000, () => {
+    barrier.destroy();
+    flameInterval.remove();
+  });
+
+  return true;
+}
+
+function executeIceUnstable(scene, caster, target) {
+  // 불안정한 냉기: 불안정한 냉기 파동
+  const wave = scene.add.circle(caster.x, caster.y, 120, 0x87CEEB, 0.5);
+  wave.setDepth(50);
+  scene.tweens.add({
+    targets: wave,
+    scale: 1.8,
+    alpha: 0,
+    duration: 700,
+    onComplete: () => wave.destroy()
+  });
+
+  const monsters = scene.monsters.getChildren();
+  monsters.forEach(monster => {
+    if (Phaser.Math.Distance.Between(caster.x, caster.y, monster.x, monster.y) < 180) {
+      monster.takeDamage(85);
+      // 불안정한 빙결
+      if (Math.random() < 0.7) {
+        monster.frozen = true;
+        scene.time.delayedCall(3000, () => monster.frozen = false);
+      }
+    }
+  });
+
+  return true;
+}
+
+function executeTimeElement(scene, caster, target) {
+  // 시간 원소: 시간 + 원소 마법
+  const effect = scene.add.circle(caster.x, caster.y, 200, 0xDDA0DD, 0.6);
+  effect.setDepth(50);
+  scene.tweens.add({
+    targets: effect,
+    scale: 3,
+    alpha: 0,
+    duration: 1200,
+    onComplete: () => effect.destroy()
+  });
+
+  const monsters = scene.monsters.getChildren();
+  monsters.forEach(monster => {
+    if (Phaser.Math.Distance.Between(caster.x, caster.y, monster.x, monster.y) < 250) {
+      monster.takeDamage(130);
+      // 시간 왜곡 + 속성 피해
+      monster.speed *= 0.3;
+      scene.time.delayedCall(8000, () => monster.speed *= 1/0.3);
+    }
+  });
+
+  return true;
+}
+
+function executeArrowShadow(scene, caster, target) {
+  // 그림자 화살: 그림자 관통 화살
+  const pointer = scene.input.activePointer;
+  const worldPoint = scene.cameras.main.getWorldPoint(pointer.x, pointer.y);
+  const angle = Phaser.Math.Angle.Between(caster.x, caster.y, worldPoint.x, worldPoint.y);
+
+  const arrow = scene.add.circle(caster.x, caster.y, 5, 0x2F4F4F, 0.9);
+  arrow.setDepth(50);
+  scene.physics.add.existing(arrow);
+  arrow.body.setVelocity(Math.cos(angle) * 550, Math.sin(angle) * 550);
+
+  scene.physics.add.overlap(arrow, scene.monsters, (arr, monster) => {
+    monster.takeDamage(95);
+    // 그림자 효과: 투명화
+    monster.alpha = 0.5;
+    scene.time.delayedCall(3000, () => monster.alpha = 1);
+  });
+
+  scene.time.delayedCall(1500, () => {
+    if (arrow.active) arrow.destroy();
+  });
+
+  return true;
+}
+
+function executeRetreatClone(scene, caster, target) {
+  // 분신 후퇴: 분신과 후퇴 사격
+  const retreatDistance = 80;
+  const retreatX = caster.x - Math.cos(caster.lastMoveDirection || 0) * retreatDistance;
+  const retreatY = caster.y - Math.sin(caster.lastMoveDirection || 0) * retreatDistance;
+
+  scene.tweens.add({
+    targets: caster,
+    x: retreatX,
+    y: retreatY,
+    duration: 250,
+    onUpdate: () => {
+      // 후퇴 중 화살 발사
+      const arrow = scene.add.circle(caster.x, caster.y, 4, 0xFFD700, 0.8);
+      arrow.setDepth(50);
+      scene.physics.add.existing(arrow);
+      arrow.body.setVelocity(-Math.cos(caster.lastMoveDirection || 0) * 400, -Math.sin(caster.lastMoveDirection || 0) * 400);
+
+      scene.physics.add.overlap(arrow, scene.monsters, (arr, monster) => {
+        monster.takeDamage(50);
+        arr.destroy();
+      });
+
+      scene.time.delayedCall(600, () => {
+        if (arrow.active) arrow.destroy();
+      });
+    }
+  });
+
+  return true;
+}
+
+function executePoisonShadow(scene, caster, target) {
+  // 독성 그림자: 독 그림자 밟기
+  const pointer = scene.input.activePointer;
+  const worldPoint = scene.cameras.main.getWorldPoint(pointer.x, pointer.y);
+
+  scene.tweens.add({
+    targets: caster,
+    x: worldPoint.x,
+    y: worldPoint.y,
+    duration: 150,
+    onComplete: () => {
+      const monsters = scene.monsters.getChildren();
+      monsters.forEach(monster => {
+        if (Phaser.Math.Distance.Between(caster.x, caster.y, monster.x, monster.y) < 40) {
+          monster.takeDamage(105);
+          // 독 효과
+          let poisonDamage = 0;
+          const poisonInterval = scene.time.addEvent({
+            delay: 800,
+            callback: () => {
+              if (monster.active && poisonDamage < 40) {
+                monster.takeDamage(8);
+                poisonDamage += 8;
+              } else {
+                poisonInterval.remove();
+              }
+            },
+            loop: true
+          });
+        }
+      });
+    }
+  });
+
+  return true;
+}
+
+function executeStormPoison(scene, caster, target) {
+  // 독성 폭풍: 독 화살 폭풍
+  const pointer = scene.input.activePointer;
+  const worldPoint = scene.cameras.main.getWorldPoint(pointer.x, pointer.y);
+
+  for (let i = 0; i < 12; i++) {
+    const angle = (Math.PI * 2 * i) / 12;
+    const arrow = scene.add.circle(worldPoint.x, worldPoint.y, 4, 0x228B22, 0.8);
+    arrow.setDepth(50);
+    scene.physics.add.existing(arrow);
+    arrow.body.setVelocity(Math.cos(angle) * 250, Math.sin(angle) * 250);
+
+    scene.physics.add.overlap(arrow, scene.monsters, (arr, monster) => {
+      monster.takeDamage(45);
+      // 독 효과
+      let poisonDamage = 0;
+      const poisonInterval = scene.time.addEvent({
+        delay: 1200,
+        callback: () => {
+          if (monster.active && poisonDamage < 25) {
+            monster.takeDamage(5);
+            poisonDamage += 5;
+          } else {
+            poisonInterval.remove();
+          }
+        },
+        loop: true
+      });
+      arr.destroy();
+    });
+
+    scene.time.delayedCall(1200, () => {
+      if (arrow.active) arrow.destroy();
+    });
+  }
+
+  return true;
+}
+
+function executeShadowElement(scene, caster, target) {
+  // 속성 그림자: 속성 그림자 밟기
+  const pointer = scene.input.activePointer;
+  const worldPoint = scene.cameras.main.getWorldPoint(pointer.x, pointer.y);
+
+  scene.tweens.add({
+    targets: caster,
+    x: worldPoint.x,
+    y: worldPoint.y,
+    duration: 180,
+    onUpdate: () => {
+      // 속성 트레일
+      const trail = scene.add.circle(caster.x, caster.y, 10, 0xFF6347, 0.6);
+      trail.setDepth(50);
+      scene.tweens.add({
+        targets: trail,
+        alpha: 0,
+        scale: 1.5,
+        duration: 250,
+        onComplete: () => trail.destroy()
+      });
+    },
+    onComplete: () => {
+      const monsters = scene.monsters.getChildren();
+      monsters.forEach(monster => {
+        if (Phaser.Math.Distance.Between(caster.x, caster.y, monster.x, monster.y) < 45) {
+          monster.takeDamage(115);
+        }
+      });
+    }
+  });
+
+  return true;
+}
+
+function executePoisonElementFusion(scene, caster, target) {
+  // 독성 원소 융합: 독 + 원소 완벽 융합
+  const pointer = scene.input.activePointer;
+  const worldPoint = scene.cameras.main.getWorldPoint(pointer.x, pointer.y);
+
+  const fusionEffect = scene.add.circle(worldPoint.x, worldPoint.y, 100, 0x8A2BE2, 0.7);
+  fusionEffect.setDepth(50);
+  scene.tweens.add({
+    targets: fusionEffect,
+    scale: 2.5,
+    alpha: 0,
+    duration: 1000,
+    onComplete: () => fusionEffect.destroy()
+  });
+
+  const monsters = scene.monsters.getChildren();
+  monsters.forEach(monster => {
+    if (Phaser.Math.Distance.Between(worldPoint.x, worldPoint.y, monster.x, monster.y) < 150) {
+      monster.takeDamage(140);
+      // 독 + 속성 효과
+      monster.frozen = true;
+      scene.time.delayedCall(4000, () => monster.frozen = false);
+      let poisonDamage = 0;
+      const poisonInterval = scene.time.addEvent({
+        delay: 600,
+        callback: () => {
+          if (monster.active && poisonDamage < 60) {
+            monster.takeDamage(12);
+            poisonDamage += 12;
+          } else {
+            poisonInterval.remove();
+          }
+        },
+        loop: true
+      });
+    }
+  });
+
+  return true;
+}
+
+function executeShadowWave(scene, caster, target) {
+  // 그림자 파동: 그림자 불안정한 파동
+  const wave = scene.add.circle(caster.x, caster.y, 110, 0x2F4F4F, 0.5);
+  wave.setDepth(50);
+  scene.tweens.add({
+    targets: wave,
+    scale: 1.7,
+    alpha: 0,
+    duration: 650,
+    onComplete: () => wave.destroy()
+  });
+
+  const monsters = scene.monsters.getChildren();
+  monsters.forEach(monster => {
+    if (Phaser.Math.Distance.Between(caster.x, caster.y, monster.x, monster.y) < 160) {
+      monster.takeDamage(95);
+      // 그림자 효과
+      monster.alpha = 0.3;
+      scene.time.delayedCall(4000, () => monster.alpha = 1);
+    }
+  });
+
+  return true;
+}
+
+function executeCloneBarrier(scene, caster, target) {
+  // 분신 장벽: 분신 방어 장벽
+  const barrier = scene.add.rectangle(caster.x, caster.y - 25, 200, 12, 0x9B59B6, 0.8);
+  barrier.setDepth(50);
+  scene.physics.add.existing(barrier);
+  barrier.body.setImmovable(true);
+
+  // 분신 효과
+  for (let i = 0; i < 4; i++) {
+    const clone = scene.add.circle(barrier.x + (i - 1.5) * 50, barrier.y, 8, 0xBA55D3, 0.6);
+    clone.setDepth(50);
+    scene.time.delayedCall(5000, () => {
+      if (clone.active) clone.destroy();
+    });
+  }
+
+  scene.time.delayedCall(5000, () => {
+    barrier.destroy();
+  });
+
   return true;
 }
 

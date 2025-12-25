@@ -54,13 +54,6 @@ export class CharacterSelectScene extends Phaser.Scene {
         description: '민첩한 암살과 독 공격\n높은 회피율과 은신 능력',
         color: 0x96CEB4,
         skills: ['그림자 밟기', '연막탄', '독 폭탄', '암살자의 춤']
-      },
-      {
-        key: 'fusionist',
-        name: '융합술사',
-        description: '스킬 융합과 강력한 조합 공격\n기존 스킬 보존 및 융합 생성',
-        color: 0xFF8C00,
-        skills: ['융합 베리어', '융합 파동', '융합 폭발', '궁극의 융합']
       }
     ];
 

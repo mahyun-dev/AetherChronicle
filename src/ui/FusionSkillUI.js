@@ -197,12 +197,13 @@ export class FusionSkillUI {
     const centerX = this.scene.cameras.main.centerX;
     const centerY = this.scene.cameras.main.centerY;
 
-    const selectorBg = this.scene.add.rectangle(centerX - 5, centerY, 400, 300, 0x000000, 0.9);
+    // 배경 (스크롤 영역 포함)
+    const selectorBg = this.scene.add.rectangle(centerX - 5, centerY, 420, 320, 0x000000, 0.9);
     selectorBg.setStrokeStyle(2, 0xFFD700);
     selectorBg.setDepth(1100);
     this.skillSelectorElements.push(selectorBg);
 
-    const selectorTitle = this.scene.add.text(centerX, centerY - 130, '스킬 선택', {
+    const selectorTitle = this.scene.add.text(centerX, centerY - 140, '스킬 선택', {
       font: 'bold 20px Arial',
       fill: '#FFD700'
     });
@@ -210,49 +211,124 @@ export class FusionSkillUI {
     selectorTitle.setDepth(1101);
     this.skillSelectorElements.push(selectorTitle);
 
-    // 스킬 버튼들 생성
-    if (Array.isArray(availableSkills)) {
-      availableSkills.forEach((skill, index) => {
-        const btnY = centerY - 80 + (index * 40);
-        
-        // 스킬 아이콘
-        let skillIcon = null;
-        if (skill.icon && this.scene.textures.exists(skill.icon)) {
-          skillIcon = this.scene.add.image(centerX - 140, btnY, skill.icon);
-          skillIcon.setDisplaySize(24, 24);
-          skillIcon.setDepth(1102);
-          this.skillSelectorElements.push(skillIcon);
+    // 스킬 리스트 컨테이너 (스크롤 가능)
+    const skillListContainer = this.scene.add.container(centerX, centerY);
+    skillListContainer.setDepth(1102);
+    this.skillSelectorElements.push(skillListContainer);
+
+    // 스킬 리스트 배경 (스크롤 영역)
+    const listBg = this.scene.add.rectangle(-5, -10, 380, 240, 0x111111, 0.8);
+    listBg.setStrokeStyle(1, 0x666666);
+    skillListContainer.add(listBg);
+
+    // 마스크 생성 (스크롤 영역 제한)
+    const maskShape = this.scene.make.graphics();
+    maskShape.fillStyle(0xffffff);
+    maskShape.fillRect(centerX - 190, centerY - 130, 380, 240);
+    const mask = maskShape.createGeometryMask();
+    skillListContainer.setMask(mask);
+    this.skillSelectorElements.push(maskShape);
+
+    // 스킬 버튼들
+    const buttonHeight = 35;
+    const maxVisibleButtons = Math.floor(240 / buttonHeight);
+    let scrollOffset = 0;
+    const maxScroll = Math.max(0, availableSkills.length - maxVisibleButtons);
+
+    const createSkillButtons = () => {
+      // 기존 버튼들 제거 (배경 제외)
+      skillListContainer.each(child => {
+        if (child !== listBg) {
+          child.destroy();
         }
-        
-        const skillBtn = this.scene.add.rectangle(centerX - 5, btnY, 300, 35, 0x333333, 0.8);
-        skillBtn.setStrokeStyle(1, 0xFFFFFF);
-        skillBtn.setInteractive({ useHandCursor: true });
-        skillBtn.setDepth(1101);
-
-        const skillText = this.scene.add.text(centerX + 3, btnY, skill.name, {
-          font: '14px Arial',
-          fill: '#FFFFFF'
-        });
-        skillText.setOrigin(0.5);
-        skillText.setDepth(1102);
-
-        skillBtn.on('pointerdown', () => {
-          this.selectSkill(slotKey, skill);
-          this.closeSkillSelector();
-        });
-
-        skillBtn.on('pointerover', () => skillBtn.setFillStyle(0x555555, 0.9));
-        skillBtn.on('pointerout', () => skillBtn.setFillStyle(0x333333, 0.8));
-
-        this.skillSelectorElements.push(skillBtn);
-        this.skillSelectorElements.push(skillText);
       });
-    } else {
-      console.warn('[FusionSkillUI] availableSkills가 배열이 아닙니다:', availableSkills);
-    }
+
+      availableSkills.forEach((skill, index) => {
+        const btnY = -110 + (index - scrollOffset) * buttonHeight;
+        
+        // 스크롤 범위 내에 있는 버튼만 생성
+        if (btnY > -130 && btnY < 110) {
+          // 스킬 아이콘
+          let skillIcon = null;
+          if (skill.icon && this.scene.textures.exists(skill.icon)) {
+            skillIcon = this.scene.add.image(-140, btnY, skill.icon);
+            skillIcon.setDisplaySize(24, 24);
+            skillListContainer.add(skillIcon);
+          }
+          
+          const skillBtn = this.scene.add.rectangle(-5, btnY, 300, 30, 0x333333, 0.8);
+          skillBtn.setStrokeStyle(1, 0xFFFFFF);
+          skillBtn.setInteractive({ useHandCursor: true });
+
+          const skillText = this.scene.add.text(3, btnY, skill.name, {
+            font: '14px Arial',
+            fill: '#FFFFFF'
+          });
+          skillText.setOrigin(0.5);
+
+          skillBtn.on('pointerdown', () => {
+            this.selectSkill(slotKey, skill);
+            this.closeSkillSelector();
+          });
+
+          skillBtn.on('pointerover', () => skillBtn.setFillStyle(0x555555, 0.9));
+          skillBtn.on('pointerout', () => skillBtn.setFillStyle(0x333333, 0.8));
+
+          skillListContainer.add(skillBtn);
+          skillListContainer.add(skillText);
+        }
+      });
+    };
+
+    createSkillButtons();
+
+    // 스크롤바
+    const scrollbarBg = this.scene.add.rectangle(centerX + 180, centerY - 10, 8, 240, 0x333333, 0.5);
+    scrollbarBg.setStrokeStyle(1, 0x666666);
+    scrollbarBg.setDepth(1101);
+    this.skillSelectorElements.push(scrollbarBg);
+
+    const scrollbarHeight = Math.max(20, (maxVisibleButtons / availableSkills.length) * 240);
+    const scrollbar = this.scene.add.rectangle(centerX + 180, centerY - 10 - (240 - scrollbarHeight) / 2 + (scrollOffset / maxScroll) * (240 - scrollbarHeight), 6, scrollbarHeight, 0xAAAAAA, 0.8);
+    scrollbar.setInteractive({ useHandCursor: true });
+    scrollbar.setDepth(1102);
+    this.skillSelectorElements.push(scrollbar);
+
+    // 마우스 휠 스크롤
+    const wheelHandler = (pointer, gameObjects, deltaX, deltaY, deltaZ) => {
+      if (deltaY > 0 && scrollOffset < maxScroll) {
+        scrollOffset++;
+      } else if (deltaY < 0 && scrollOffset > 0) {
+        scrollOffset--;
+      }
+      createSkillButtons();
+      scrollbar.y = centerY - 10 - (240 - scrollbarHeight) / 2 + (scrollOffset / maxScroll) * (240 - scrollbarHeight);
+    };
+
+    this.scene.input.on('wheel', wheelHandler);
+
+    // 스크롤바 드래그
+    let isDraggingScrollbar = false;
+    scrollbar.on('pointerdown', (pointer) => {
+      isDraggingScrollbar = true;
+    });
+
+    this.scene.input.on('pointermove', (pointer) => {
+      if (isDraggingScrollbar) {
+        const localY = pointer.y - centerY + 10;
+        const scrollRatio = Math.max(0, Math.min(1, (localY + (240 - scrollbarHeight) / 2) / (240 - scrollbarHeight)));
+        scrollOffset = Math.round(scrollRatio * maxScroll);
+        createSkillButtons();
+        scrollbar.y = centerY - 10 - (240 - scrollbarHeight) / 2 + (scrollOffset / maxScroll) * (240 - scrollbarHeight);
+      }
+    });
+
+    this.scene.input.on('pointerup', () => {
+      isDraggingScrollbar = false;
+    });
 
     // 닫기 버튼
-    const closeSelectorBtn = this.scene.add.text(centerX + 180, centerY - 130, '✕', {
+    const closeSelectorBtn = this.scene.add.text(centerX + 180, centerY - 140, '✕', {
       font: 'bold 20px Arial',
       fill: '#FFFFFF'
     });
@@ -260,18 +336,15 @@ export class FusionSkillUI {
     closeSelectorBtn.setInteractive({ useHandCursor: true });
     closeSelectorBtn.setDepth(1101);
     closeSelectorBtn.on('pointerdown', () => {
+      this.scene.input.off('wheel', wheelHandler);
       this.closeSkillSelector();
     });
     this.skillSelectorElements.push(closeSelectorBtn);
 
-    // 모든 요소가 이미 씬에 추가됨
-    
-    // 스킬 선택기 요소들을 카메라를 따라 움직이도록 설정
-    this.skillSelectorElements.forEach(element => {
-      if (element && typeof element.setScrollFactor === 'function') {
-        element.setScrollFactor(1);
-      }
-    });
+    // 닫기 시 이벤트 정리
+    this.closeSkillSelectorCallback = () => {
+      this.scene.input.off('wheel', wheelHandler);
+    };
   }
 
   /**
@@ -438,6 +511,29 @@ export class FusionSkillUI {
           }
         });
       }
+
+      // 융합술사 테스트용 도적,궁수,전사 스킬 (skills.json에서 불러오기)
+      if (this.player && this.player.characterClass === 'fusionist') {
+        const allClassSkills = [
+          { id: 'warrior_skill_1', name: '돌진 베기', description: '전방 300px 돌진하며 경로상 적에게 120% 공격력 피해', type: 'dash' },
+          { id: 'warrior_skill_2', name: '방어 자세', description: '3초간 받는 피해 60% 감소, 이동 속도 50% 감소', type: 'buff' },
+          { id: 'warrior_skill_3', name: '회전 베기', description: '주변 250px 범위에 150% 광역 피해', type: 'aoe' },
+          { id: 'warrior_skill_ultimate', name: '파멸의 일격', description: '전방 직선으로 강력한 충격파 발사, 400% 피해 + 2초 기절', type: 'ranged' },
+          { id: 'archer_skill_1', name: '관통 화살', description: '직선으로 관통하는 화살 발사, 130% 피해', type: 'ranged' },
+          { id: 'archer_skill_2', name: '후퇴 사격', description: '후방으로 도약하며 전방에 3발의 화살 발사 (각 80% 피해)', type: 'ranged' },
+          { id: 'archer_skill_3', name: '독화살', description: '독 화살 발사, 명중 시 100% 피해 + 5초간 초당 20 독 피해', type: 'ranged' },
+          { id: 'archer_skill_ultimate', name: '폭풍우 화살', description: '하늘에서 화살 폭풍 발생, 8초간 400px 범위 내 적에게 초당 100 피해', type: 'aoe' },
+          { id: 'rogue_skill_1', name: '그림자 밟기', description: '대상의 뒤로 순간이동 + 150% 백어택 피해', type: 'dash' },
+          { id: 'rogue_skill_2', name: '독 칠하기', description: '무기에 독을 칠해 5초간 지속 피해 + 이동 속도 감소', type: 'buff' },
+          { id: 'rogue_skill_3', name: '그림자 베기', description: '주변 150px 범위에 그림자 베기로 250% 피해', type: 'aoe' },
+          { id: 'rogue_skill_ultimate', name: '환영 분신', description: '분신을 생성하여 주변 적들에게 300% 피해 + 1초 기절', type: 'aoe' }
+        ];
+        allClassSkills.forEach(skill => {
+          if (!skills.some(s => s.id === skill.id)) {
+            skills.push(skill);
+          }
+        });
+      }
     } catch (error) {
       console.warn('[FusionSkillUI] 스킬 로드 중 오류:', error);
     }
@@ -449,6 +545,12 @@ export class FusionSkillUI {
    * 스킬 선택기 닫기
    */
   closeSkillSelector() {
+    // 이벤트 정리 콜백 실행
+    if (this.closeSkillSelectorCallback) {
+      this.closeSkillSelectorCallback();
+      this.closeSkillSelectorCallback = null;
+    }
+
     this.skillSelectorElements.forEach(element => {
       if (element && element.active) {
         element.destroy();
