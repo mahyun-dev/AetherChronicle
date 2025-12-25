@@ -31,12 +31,6 @@
       "description": "돌진하며 적을 관통하는 화살을 발사"
     },
     {
-      "ingredients": ["방어 자세", "마력 장벽"],
-      "result": "fusion_enhanced_barrier",
-      "name": "강화 방벽",
-      "description": "물리와 마법 방어력이 모두 상승하는 강화된 방벽"
-    },
-    {
       "ingredients": ["화염 폭발", "독화살"],
       "result": "fusion_poison_flame",
       "name": "독성 화염",
